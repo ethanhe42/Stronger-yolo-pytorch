@@ -1,0 +1,42 @@
+MODEL:
+  LABEL: [
+  "aeroplane",
+  "bicycle",
+  "bird",
+  "boat",
+  "bottle",
+  "bus",
+  "car",
+  "cat",
+  "chair",
+  "cow",
+  "diningtable",
+  "dog",
+  "horse",
+  "motorbike",
+  "person",
+  "pottedplant",
+  "sheep",
+  "sofa",
+  "train",
+  "tvmonitor"
+  ]
+  numcls: 20
+
+EXPER:
+  experiment_name: 'voc_512_sparse'
+  resume: 'best'
+DATASET:
+  dataset: 'VOC'
+
+OPTIM:
+  batch_size: 12
+  lr_initial: 2e-4
+  total_epoch: 3
+  milestones: [1,2]
+
+Prune:
+  sparse: True
+  pruneratio: 0.35
+
+debug: True

@@ -1,0 +1,41 @@
+MODEL:
+  LABEL: [
+  "aeroplane",
+  "bicycle",
+  "bird",
+  "boat",
+  "bottle",
+  "bus",
+  "car",
+  "cat",
+  "chair",
+  "cow",
+  "diningtable",
+  "dog",
+  "horse",
+  "motorbike",
+  "person",
+  "pottedplant",
+  "sheep",
+  "sofa",
+  "train",
+  "tvmonitor"
+  ]
+  numcls: 20
+
+EXPER:
+  experiment_name: 'voc_320'
+  train_sizes: [320]
+  test_size: 320
+
+DATASET:
+  dataset: 'VOC'
+
+OPTIM:
+  batch_size: 12
+  lr_initial: 2e-4
+  total_epoch: 60
+  milestones: [30,45]
+
+Prune:
+  sparse: False
