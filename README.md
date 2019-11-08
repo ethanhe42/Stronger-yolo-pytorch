@@ -4,7 +4,7 @@
 Pytorch implementation of [Stronger-Yolo](https://github.com/Stinky-Tofu/Stronger-yolo) with channel-pruning.
 
 ## Environment
-python3.6, pytorch1.2(1.0+ should be ok)
+python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 
 ## Quick Start
 1 . run the following command to start training, see [yacs](https://github.com/rbgirshick/yacs) for more instructions.  
