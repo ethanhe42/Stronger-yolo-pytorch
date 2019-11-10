@@ -98,5 +98,5 @@ OPTIM:
   total_epoch: 120
   milestones: [80,100]
 
-SPARSE:
+Prune:
   sparse: False
