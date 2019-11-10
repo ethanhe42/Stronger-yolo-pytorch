@@ -19,10 +19,10 @@ python main.py --config-file configs/voc.yaml EXPER.resume best  do_test True EX
 ## Improvement with latest papers
 |model|mAP50|mAP75|configs|
 | ------ | ------ | ------ |------ |
-baseline(with GIOU)|0.765 |0.391|voc.yaml|
-+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |voc_clsfocal.yaml|
-+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |voc_kl_clsfocal.yaml|
-+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |voc_kl_clsfocal.yaml|
+|baseline(with GIOU)|0.765 |0.391|voc.yaml|
+|+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |voc_clsfocal.yaml|
+|+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |voc_kl_clsfocal.yaml|
+|+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |voc_kl_clsfocal.yaml|
 
 Note:  
 1.Set EVAL.varvote=True to enable varvote in KL-loss. 
