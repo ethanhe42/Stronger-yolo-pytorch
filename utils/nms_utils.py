@@ -23,7 +23,7 @@ def torch_nms(cfg, boxes, variance=None):
                 klbox = torch.cat((klbox, maxbox), 0)
                 kliou = iou[ioumask]
                 klvar = klbox[:, -4:]
-                pi = torch.exp(-1 * torch.pow((1 - kliou), 2) / 0.05)
+                pi = torch.exp(-1 * torch.pow((1 - kliou), 2) / cfg.vvsigma)
                 pi = torch.cat((pi, torch.ones(1).cuda()), 0).unsqueeze(1)
                 pi = pi / klvar
                 pi = pi / pi.sum(0)
@@ -34,7 +34,7 @@ def torch_nms(cfg, boxes, variance=None):
             if not cfg.soft:
                 weight[iou > cfg.iou_thres] = 0
             else:
-                weight = torch.exp(-1.0 * (iou ** 2 / 0.3))
+                weight = torch.exp(-1.0 * (iou ** 2 / cfg.softsigma))
             clsboxes[:, 4] = clsboxes[:, 4] * weight
             filter_idx = (clsboxes[:, 4] >= cfg.score_thres).nonzero().squeeze(-1)
             clsboxes = clsboxes[filter_idx]

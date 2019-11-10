@@ -20,8 +20,11 @@ _C.EVAL=CN()
 _C.EVAL.iou_thres=0.5
 _C.EVAL.softnms=False
 _C.EVAL.varvote=False
+_C.EVAL.vvsigma=0.05
+
 _C.EVAL.score_thres=0.1
 _C.EVAL.soft=False
+_C.EVAL.softsigma=False
 
 _C.EXPER=CN()
 _C.EXPER.experiment_name=''
