@@ -7,8 +7,21 @@ _C.devices= (0,)
 
 _C.MODEL=CN()
 _C.MODEL.LABEL=[]
+_C.MODEL.modeltype = 'YoloV3'
 _C.MODEL.numcls=20
 _C.MODEL.gt_per_grid=3
+_C.MODEL.clsfocal = False
+_C.MODEL.seprelu = True
+_C.MODEL.boxloss = 'iou'
+_C.MODEL.l1scale = 1.0
+
+_C.EVAL=CN()
+#iou thres for VOC,default is map50
+_C.EVAL.iou_thres=0.5
+_C.EVAL.softnms=False
+_C.EVAL.varvote=False
+_C.EVAL.score_thres=0.1
+_C.EVAL.soft=False
 
 _C.EXPER=CN()
 _C.EXPER.experiment_name=''

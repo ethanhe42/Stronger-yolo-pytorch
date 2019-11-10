@@ -1,0 +1,45 @@
+MODEL:
+  LABEL: [
+  "aeroplane",
+  "bicycle",
+  "bird",
+  "boat",
+  "bottle",
+  "bus",
+  "car",
+  "cat",
+  "chair",
+  "cow",
+  "diningtable",
+  "dog",
+  "horse",
+  "motorbike",
+  "person",
+  "pottedplant",
+  "sheep",
+  "sofa",
+  "train",
+  "tvmonitor"
+  ]
+  modeltype: YoloV3KL
+  numcls: 20
+  boxloss: KL
+  l1scale: 0.1
+  clsfocal: True
+EVAL:
+  varvote: True
+EXPER:
+  experiment_name: 'voc_512kl_focal'
+DATASET:
+  dataset: 'VOC'
+
+OPTIM:
+  batch_size: 12
+  lr_initial: 2e-4
+  total_epoch: 60
+  milestones: [30,45]
+
+Prune:
+  sparse: False
+
+devices: (0,)

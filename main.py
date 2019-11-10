@@ -1,4 +1,4 @@
-from models.yolov3 import YoloV3
+from models import YoloV3,YoloV3KL
 from trainers import *
 import json
 from yacscfg import _C as cfg
@@ -9,7 +9,7 @@ import argparse
 def main(args):
     gpus=[str(g) for g in args.devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(gpus)
-    net = YoloV3(numclass=args.MODEL.numcls,gt_per_grid=args.MODEL.gt_per_grid).cuda()
+    net = eval(cfg.MODEL.modeltype)(numclass=args.MODEL.numcls,gt_per_grid=args.MODEL.gt_per_grid).cuda()
 
     optimizer = optim.Adam(net.parameters(),lr=args.OPTIM.lr_initial)
     scheduler=optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.OPTIM.milestones, gamma=0.1)
@@ -19,7 +19,7 @@ def main(args):
                        lrscheduler=scheduler
                        )
     if args.do_test:
-      _Trainer._valid_epoch(scorethres=0.1,validiter=10)
+      _Trainer._valid_epoch(validiter=-1)
     else:
       _Trainer.train()
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default='configs/voc.yaml'
+        default='configs/voc1anchor.yaml'
     )
 
     parser.add_argument(
@@ -40,5 +40,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    cfg.EVAL.iou_thres=0.5
     cfg.freeze()
-    main(args=cfg).run()
+    main(args=cfg)

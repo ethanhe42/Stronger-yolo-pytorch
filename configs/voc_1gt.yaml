@@ -22,12 +22,16 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-
+  gt_per_grid: 1
+  boxloss: KL
+  l1scale: 0.1
+  clsfocal: True
+  modeltype: YoloV3KL
+EVAL:
+  varvote: True
+  soft: False
 EXPER:
-  experiment_name: 'voc_320'
-  train_sizes: [320]
-  test_size: 320
-
+  experiment_name: 'voc_5121anchor'
 DATASET:
   dataset: 'VOC'
 
@@ -39,3 +43,5 @@ OPTIM:
 
 Prune:
   sparse: False
+
+devices: (0,)

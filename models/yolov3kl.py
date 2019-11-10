@@ -3,7 +3,7 @@ from models.mobilev2 import MobileNetV2,conv_bn,sepconv_bn,conv_bias
 import torch.nn as nn
 from collections import OrderedDict
 import pickle
-class YoloV3(nn.Module):
+class YoloV3KL(nn.Module):
     def __init__(self,numclass,gt_per_grid=3):
         super().__init__()
         self.numclass=numclass
@@ -20,7 +20,7 @@ class YoloV3(nn.Module):
         ]))
         self.detlarge=nn.Sequential(OrderedDict([
             ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1)),
-            ('conv6', conv_bias(1024, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
+            ('conv6', conv_bias(1024, self.gt_per_grid*(self.numclass+5+4),kernel=1,stride=1,padding=0))
         ]))
         self.mergelarge=nn.Sequential(OrderedDict([
             ('conv7',conv_bn(512,256,kernel=1,stride=1,padding=0)),
@@ -36,7 +36,7 @@ class YoloV3(nn.Module):
         ]))
         self.detmid=nn.Sequential(OrderedDict([
             ('conv13',sepconv_bn(256,512,kernel=3, stride=1, padding=1)),
-            ('conv14', conv_bias(512, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
+            ('conv14', conv_bias(512, self.gt_per_grid*(self.numclass+5+4),kernel=1,stride=1,padding=0))
         ]))
         self.mergemid=nn.Sequential(OrderedDict([
             ('conv15',conv_bn(256,128,kernel=1,stride=1,padding=0)),
@@ -52,15 +52,16 @@ class YoloV3(nn.Module):
         ]))
         self.detsmall=nn.Sequential(OrderedDict([
             ('conv21',sepconv_bn(128,256,kernel=3, stride=1, padding=1)),
-            ('conv22', conv_bias(256, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
+            ('conv22', conv_bias(256, self.gt_per_grid*(self.numclass+5+4),kernel=1,stride=1,padding=0))
         ]))
     def decode(self,output,stride):
         bz=output.shape[0]
         gridsize=output.shape[-1]
 
         output=output.permute(0,2,3,1)
-        output=output.view(bz,gridsize,gridsize,self.gt_per_grid,5+self.numclass)
-        x1y1,x2y2,conf,prob=torch.split(output,[2,2,1,self.numclass],dim=4)
+        output=output.view(bz,gridsize,gridsize,self.gt_per_grid,5+self.numclass+4)
+        x1y1,x2y2,variance,conf,prob=torch.split(output,[2,2,4,1,self.numclass],dim=4)
+
         shiftx=torch.arange(0,gridsize,dtype=torch.float32)
         shifty=torch.arange(0,gridsize,dtype=torch.float32)
         shifty,shiftx=torch.meshgrid([shiftx,shifty])
@@ -74,15 +75,15 @@ class YoloV3(nn.Module):
         xyxy=torch.cat((x1y1,x2y2),dim=4)
         conf=torch.sigmoid(conf)
         prob=torch.sigmoid(prob)
-        output=torch.cat((xyxy,conf,prob),4)
+        output=torch.cat((xyxy,variance,conf,prob),4)
         return output
     def decode_infer(self,output,stride):
         bz=output.shape[0]
         gridsize=output.shape[-1]
 
         output=output.permute(0,2,3,1)
-        output=output.view(bz,gridsize,gridsize,self.gt_per_grid,5+self.numclass)
-        x1y1,x2y2,conf,prob=torch.split(output,[2,2,1,self.numclass],dim=4)
+        output=output.view(bz,gridsize,gridsize,self.gt_per_grid,5+self.numclass+4)
+        x1y1,x2y2,variance,conf,prob=torch.split(output,[2,2,4,1,self.numclass],dim=4)
 
         shiftx=torch.arange(0,gridsize,dtype=torch.float32)
         shifty=torch.arange(0,gridsize,dtype=torch.float32)
@@ -97,8 +98,9 @@ class YoloV3(nn.Module):
         xyxy=torch.cat((x1y1,x2y2),dim=4)
         conf=torch.sigmoid(conf)
         prob=torch.sigmoid(prob)
-        output=torch.cat((xyxy,conf,prob),4)
-        output=output.view(bz,-1,5+self.numclass)
+        output=torch.cat((xyxy,variance,conf,prob),4)
+
+        output=output.view(bz,-1,5+self.numclass+4)
         return output
 
     def forward(self,input):

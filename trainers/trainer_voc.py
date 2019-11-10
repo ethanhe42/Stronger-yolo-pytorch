@@ -11,7 +11,7 @@ class Trainer(BaseTrainer):
                                       cateNames=self.labels,
                                       rootpath=self.dataset_root,
                                       score_thres=0.01,
-                                      iou_thres=0.5,
+                                      iou_thres=self.args.EVAL.iou_thres,
                                       use_07_metric=False
                                       )
     self.logger_custom = ['mAP']+['AP@{}'.format(cls) for cls in self.labels]

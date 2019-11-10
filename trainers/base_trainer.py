@@ -4,12 +4,7 @@ import os
 import time
 from dataset import makeImgPyramids
 from models.yololoss import yololoss
-from utils.nms_utils import torch_nms, cpu_nms
-from utils.util import module2weight
-import numpy as np
-from dataset import bbox_flip
-from collections import defaultdict
-import shutil
+from utils.nms_utils import torch_nms
 from tensorboardX import SummaryWriter
 from utils.util import AverageMeter
 import torch
@@ -154,10 +149,10 @@ class BaseTrainer:
             if epoch > 2:
                 results, imgs = self._valid_epoch()
                 for k, v in zip(self.logger_custom, results):
-                    self.writer.add_scalar(k, v, global_step=self.global_iter)
+                    self.writer.add_scalar(k, v, global_step=self.global_epoch)
                 for i in range(len(imgs)):
                     self.writer.add_image("detections_{}".format(i), imgs[i].transpose(2, 0, 1),
-                                          global_step=self.global_iter)
+                                          global_step=self.global_epoch)
                 self._reset_loggers()
                 if results[0] > self.best_mAP:
                     self.best_mAP = results[0]
@@ -182,8 +177,8 @@ class BaseTrainer:
         labels = [label.cuda() for label in labels]
         label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes = labels
         outsmall, outmid, outlarge, predsmall, predmid, predlarge = self.model(imgs)
-        GIOUloss,conf_loss,probloss = yololoss(outsmall, outmid, outlarge, predsmall, predmid, predlarge,
-                             label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes,numclass=self.num_classes)
+        GIOUloss,conf_loss,probloss = yololoss(self.args.MODEL,outsmall, outmid, outlarge, predsmall, predmid, predlarge,
+                             label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes)
         GIOUloss=GIOUloss.sum()/imgs.shape[0]
         conf_loss=conf_loss.sum()/imgs.shape[0]
         probloss=probloss.sum()/imgs.shape[0]
@@ -198,11 +193,18 @@ class BaseTrainer:
         self.LossConf.update(conf_loss.item())
         self.LossClass.update(probloss.item())
 
-    def _valid_epoch(self,validiter=-1,scorethres=0.1):
+    def _valid_epoch(self,validiter=-1):
         def _postprocess(pred_bbox, test_input_size, org_img_shape):
-            pred_coor = pred_bbox[:, 0:4]
-            pred_conf = pred_bbox[:, 4]
-            pred_prob = pred_bbox[:, 5:]
+            if self.args.MODEL.boxloss == 'KL':
+                pred_coor = pred_bbox[:, 0:4]
+                pred_vari = pred_bbox[:, 4:8]
+                pred_vari = torch.exp(pred_vari)
+                pred_conf = pred_bbox[:, 8]
+                pred_prob = pred_bbox[:, 9:]
+            else:
+                pred_coor = pred_bbox[:, 0:4]
+                pred_conf = pred_bbox[:, 4]
+                pred_prob = pred_bbox[:, 5:]
             org_h, org_w = org_img_shape
             ratio_w, ratio_h = test_input_size / org_w, test_input_size / org_h
             pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2]) / ratio_w
@@ -218,31 +220,10 @@ class BaseTrainer:
             # ***********************
             scores = pred_conf.unsqueeze(-1) * pred_prob
             bboxes = torch.cat([pred_coor, scores], dim=-1)
-            return bboxes
-        def _postprocess_kr(pred_bbox, test_input_size, org_img_shape):
-            pred_coor = pred_bbox[:, 0:4]
-            pred_conf = pred_bbox[:, 4]
-            pred_prob = pred_bbox[:, 5:]
-            org_h, org_w = org_img_shape
-            resize_ratio = min(1.0 * test_input_size / org_w, 1.0 * test_input_size / org_h)
-            dw = (test_input_size - resize_ratio * org_w) / 2
-            dh = (test_input_size - resize_ratio * org_h) / 2
-
-            pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2] - dw) / resize_ratio
-            pred_coor[:, 1::2] = 1.0 * (pred_coor[:, 1::2] - dh) / resize_ratio
-
-            x1,y1,x2,y2=torch.split(pred_coor,[1,1,1,1],dim=1)
-            x1,y1=torch.max(x1,torch.zeros_like(x1)),torch.max(y1,torch.zeros_like(y1))
-            x2,y2=torch.min(x2,torch.ones_like(x2)*(org_w-1)),torch.min(y2,torch.ones_like(y2)*(org_h-1))
-            pred_coor=torch.cat([x1,y1,x2,y2],dim=-1)
-
-            # ***********************
-            if pred_prob.shape[-1]==0:
-                pred_prob = torch.ones((pred_prob.shape[0], 1)).cuda()
-            # ***********************
-            scores = pred_conf.unsqueeze(-1) * pred_prob
-            bboxes = torch.cat([pred_coor, scores], dim=-1)
-            return bboxes
+            if self.args.MODEL.boxloss == 'KL' and self.args.EVAL.varvote:
+                return bboxes, pred_vari
+            else:
+                return bboxes,None
 
         s = time.time()
         self.model.eval()
@@ -256,11 +237,12 @@ class BaseTrainer:
             with torch.no_grad():
                 outputs = self.model(imgs)
             for imgidx in range(len(outputs)):
-                bbox = _postprocess(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
-                # bbox = _postprocess_kr(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
-                s = time.time()
-                nms_boxes, nms_scores, nms_labels = torch_nms(bbox[:,:4],bbox[:,4:],
-                                                              num_classes=bbox[:,4:].shape[-1],score_thresh=scorethres)
+
+                bbox,bboxvari = _postprocess(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
+                #nms_boxes, nms_scores, nms_labels = torch_nms(bbox[:,:4],bbox[:,4:],
+                 #                                             num_classes=bbox[:,4:].shape[-1],score_thresh=scorethres)
+                nms_boxes, nms_scores, nms_labels = torch_nms(self.args.EVAL,bbox,
+                                                                 variance=bboxvari)
                 if nms_boxes is not None:
                     self.TESTevaluator.append(imgpath[imgidx][0],
                                               nms_boxes.cpu().numpy(),
@@ -270,5 +252,4 @@ class BaseTrainer:
         imgs = self.TESTevaluator.visual_imgs
         for k, v in zip(self.logger_custom, results):
             print("{}:{}".format(k, v))
-        print("validation cost {} s".format(time.time() - s))
         return results, imgs
