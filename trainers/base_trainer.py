@@ -73,8 +73,8 @@ class BaseTrainer:
             load_tf_weights(self.model, 'vocweights.pkl')
         else:  # iter or best
             ckptfile = torch.load(os.path.join(self.save_path, 'checkpoint-{}.pth'.format(self.args.EXPER.resume)))
-            # self.model.load_state_dict(ckptfile['state_dict'])
-            load_checkpoint(self.model,ckptfile)
+            self.model.load_state_dict(ckptfile['state_dict'])
+            #load_checkpoint(self.model,ckptfile)
             if not self.args.finetune:
                 self.optimizer.load_state_dict(ckptfile['opti_dict'])
                 self.global_epoch = ckptfile['epoch']
