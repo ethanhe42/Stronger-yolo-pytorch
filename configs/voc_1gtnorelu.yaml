@@ -27,11 +27,12 @@ MODEL:
   l1scale: 0.1
   clsfocal: True
   modeltype: YoloV3KL
+  seprelu: False
 EVAL:
   varvote: True
   soft: False
 EXPER:
-  experiment_name: 'voc_5121anchor'
+  experiment_name: 'voc_5121anchornorelu'
 DATASET:
   dataset: 'VOC'
 
@@ -44,4 +45,4 @@ OPTIM:
 Prune:
   sparse: False
 
-devices: (0,)
+devices: (1,)

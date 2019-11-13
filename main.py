@@ -9,7 +9,7 @@ import argparse
 def main(args):
     gpus=[str(g) for g in args.devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(gpus)
-    net = eval(cfg.MODEL.modeltype)(numclass=args.MODEL.numcls,gt_per_grid=args.MODEL.gt_per_grid).cuda()
+    net = eval(cfg.MODEL.modeltype)(cfg=args.MODEL).cuda()
 
     optimizer = optim.Adam(net.parameters(),lr=args.OPTIM.lr_initial)
     scheduler=optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.OPTIM.milestones, gamma=0.1)
