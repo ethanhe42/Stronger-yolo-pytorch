@@ -49,7 +49,10 @@ Yolov3-Pruned(35% pruned) |0.746 |3.00|2.815|
 Note:  
 1.All experiments are trained for 60 epochs.  
 2.All experiments tested with threshold 0.1 in 512 resolution.
-
+## Supported backbone
+- [x] MobileV2
+- [x] DarkNet  
+...
 ## Reference
 [Stronger-Yolo](https://github.com/Stinky-Tofu/Stronger-yolo)  
 [focal-loss](https://arxiv.org/abs/1708.02002)  
