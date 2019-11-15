@@ -19,16 +19,25 @@ class conv_bias(nn.Module):
         return self.conv(input)
 
 class sepconv_bn(nn.Module):
-    def __init__(self,inp, oup, kernel,stride,padding):
+    def __init__(self,inp, oup, kernel,stride,padding,seprelu):
         super(sepconv_bn, self).__init__()
-        self.sepconv_bn= nn.Sequential(OrderedDict([
-            ('sepconv',nn.Conv2d(inp, inp, kernel, stride, padding,groups=inp, bias=False)),
-            ('sepbn',nn.BatchNorm2d(inp)),
-            ('seprelu',nn.ReLU6(inplace=True)),
-            ('pointconv', nn.Conv2d(inp, oup, 1, 1, 0, bias=False)),
-            ('pointbn', nn.BatchNorm2d(oup)),
-            ('pointrelu', nn.ReLU6(inplace=True)),
-        ]))
+        if seprelu:
+            self.sepconv_bn= nn.Sequential(OrderedDict([
+                ('sepconv',nn.Conv2d(inp, inp, kernel, stride, padding,groups=inp, bias=False)),
+                ('sepbn',nn.BatchNorm2d(inp)),
+                ('seprelu',nn.ReLU6(inplace=True)),
+                ('pointconv', nn.Conv2d(inp, oup, 1, 1, 0, bias=False)),
+                ('pointbn', nn.BatchNorm2d(oup)),
+                ('pointrelu', nn.ReLU6(inplace=True)),
+            ]))
+        else:
+            self.sepconv_bn= nn.Sequential(OrderedDict([
+                ('sepconv',nn.Conv2d(inp, inp, kernel, stride, padding,groups=inp, bias=False)),
+                ('sepbn',nn.BatchNorm2d(inp)),
+                ('pointconv', nn.Conv2d(inp, oup, 1, 1, 0, bias=False)),
+                ('pointbn', nn.BatchNorm2d(oup)),
+                ('pointrelu', nn.ReLU6(inplace=True)),
+            ]))
     def forward(self, input):
         return self.sepconv_bn(input)
 

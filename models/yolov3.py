@@ -7,22 +7,22 @@ from models.helper import *
 from models.baseblock import *
 
 class YoloV3(nn.Module):
-    def __init__(self,numclass,gt_per_grid=3):
+    def __init__(self,cfg):
         super().__init__()
-        self.numclass=numclass
-        self.gt_per_grid=gt_per_grid
+        self.numclass=cfg.numcls
+        self.gt_per_grid=cfg.gt_per_grid
         self.mobilev2=MobileNetV2()
         load_mobilev2(self.mobilev2,'models/mobilenet_v2.pth')
         self.heads=[]
         self.headslarge=nn.Sequential(OrderedDict([
             ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
-            ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1)),
+            ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv2', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
-            ('conv3', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1)),
+            ('conv3', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv4', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
         ]))
         self.detlarge=nn.Sequential(OrderedDict([
-            ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1)),
+            ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1,seprelu=cfg.sepreluvvvvvvvvv)),
             ('conv6', conv_bias(1024, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
         self.mergelarge=nn.Sequential(OrderedDict([
@@ -32,13 +32,13 @@ class YoloV3(nn.Module):
         #-----------------------------------------------
         self.headsmid=nn.Sequential(OrderedDict([
             ('conv8',conv_bn(96+256,256,kernel=1,stride=1,padding=0)),
-            ('conv9', sepconv_bn(256, 512, kernel=3, stride=1, padding=1)),
+            ('conv9', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv10', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
-            ('conv11', sepconv_bn(256, 512, kernel=3, stride=1, padding=1)),
+            ('conv11', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv12', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
         ]))
         self.detmid=nn.Sequential(OrderedDict([
-            ('conv13',sepconv_bn(256,512,kernel=3, stride=1, padding=1)),
+            ('conv13',sepconv_bn(256,512,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv14', conv_bias(512, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
         self.mergemid=nn.Sequential(OrderedDict([
@@ -48,13 +48,13 @@ class YoloV3(nn.Module):
         #-----------------------------------------------
         self.headsmall=nn.Sequential(OrderedDict([
             ('conv16',conv_bn(32+128,128,kernel=1,stride=1,padding=0)),
-            ('conv17', sepconv_bn(128, 256, kernel=3, stride=1, padding=1)),
+            ('conv17', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv18', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
-            ('conv19', sepconv_bn(128, 256, kernel=3, stride=1, padding=1)),
+            ('conv19', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv20', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
         ]))
         self.detsmall=nn.Sequential(OrderedDict([
-            ('conv21',sepconv_bn(128,256,kernel=3, stride=1, padding=1)),
+            ('conv21',sepconv_bn(128,256,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv22', conv_bias(256, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
     def decode(self,output,stride):

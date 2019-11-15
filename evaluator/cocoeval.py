@@ -101,7 +101,7 @@ class EvaluatorCOCO(Evaluator):
         self.visual_imgs = []
 
     def build_GT(self):
-        self.cocoGt = COCO(os.path.join(self.dataset_root, 'annotations/instances_val2017_nocls.json'))
+        self.cocoGt = COCO(os.path.join(self.dataset_root, 'annotations/instances_val2017.json'))
 
     def append(self, imgpath, nms_boxes, nms_scores, nms_labels, visualize=True):
         imgid = int(imgpath[-16:-4])
