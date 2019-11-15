@@ -8,6 +8,7 @@ _C.devices= (0,)
 _C.MODEL=CN()
 _C.MODEL.LABEL=[]
 _C.MODEL.modeltype = 'YoloV3'
+_C.MODEL.backbone_outchannels=[1280,256,128]
 _C.MODEL.numcls=20
 _C.MODEL.gt_per_grid=3
 _C.MODEL.clsfocal = False

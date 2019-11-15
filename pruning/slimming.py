@@ -1,6 +1,6 @@
 from pruning.BasePruner import BasePruner
 from pruning.Block import *
-from models.mobilev2 import InvertedResidual, conv_bn, sepconv_bn, conv_bias
+from models.baseblock import InvertedResidual, conv_bn, sepconv_bn, conv_bias
 import matplotlib.pyplot as plt
 import numpy as np
 class SlimmingPruner(BasePruner):

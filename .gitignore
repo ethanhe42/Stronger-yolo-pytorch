@@ -6,3 +6,5 @@ summary/
 weights/
 *mine.py
 *.txt
+yolov3.weights
+darknet53.conv.74

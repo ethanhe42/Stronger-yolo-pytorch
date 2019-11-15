@@ -3,6 +3,9 @@ from models.mobilev2 import MobileNetV2,conv_bn,sepconv_bn,conv_bias
 import torch.nn as nn
 from collections import OrderedDict
 import pickle
+from models.helper import *
+from models.baseblock import *
+
 class YoloV3KL(nn.Module):
     def __init__(self,numclass,gt_per_grid=3):
         super().__init__()
@@ -127,41 +130,6 @@ class YoloV3KL(nn.Module):
             pred=torch.cat([predsmall,predmid,predlarge],dim=1)
             return pred
         return outsmall,outmid,outlarge,predsmall,predmid,predlarge
-def load_mobilev2(model,ckpt):
-    weights = torch.load(ckpt)
-    statedict=model.state_dict()
-    newstatedict=OrderedDict()
-    for k,v in model.state_dict().items():
-        if 'num_batches_tracked' in k:
-            statedict.pop(k)
-    for idx,((k,v),(k2,v2)) in enumerate(zip(statedict.items(),weights.items())):
-        # print(k,v.shape,'<->',k2,v2.shape)
-        newstatedict.update({k:v2})
-    model.load_state_dict(newstatedict)
-    print("successfully load ckpt mobilev2")
-# def load_mobilev2(model,ckpt):
-#     model.load_state_dict(torch.load(ckpt))
-#     print("successfully load ckpt mobilev2")
-def load_tf_weights(model,ckpt):
-    with open(ckpt, 'rb') as f:
-        weights = pickle.load(f, encoding='latin1')
-    statedict=model.state_dict()
-    for k,v in model.state_dict().items():
-        if 'num_batches_tracked' in k:
-            statedict.pop(k)
-    newstatedict=OrderedDict()
-    for idx,((k,v),(k2,v2)) in enumerate(zip(statedict.items(),weights.items())):
-        if v.ndim>1:
-            if 'depthwise' in k2:
-                #hwio->iohw
-                newstatedict.update({k:torch.from_numpy(v2.transpose(2,3,0,1))})
-            else:
-                #hwoi->iohw
-                newstatedict.update({k:torch.from_numpy(v2.transpose(3,2,0,1))})
-        else:
-            newstatedict.update({k:torch.from_numpy(v2)})
-    model.load_state_dict(newstatedict)
-    print("successfully load ckpt")
 
 if __name__ == '__main__':
     import pickle
