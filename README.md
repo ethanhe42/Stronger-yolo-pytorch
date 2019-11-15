@@ -8,6 +8,7 @@ This project will also try out some model-compression approaches(e.g. channel-pr
 python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 
 ## Quick Start
+All checkpoints are available at [百度网盘](https://pan.baidu.com/s/1vwz1r2hb67-Mz2eZbGyU7Q)(**2tya**), download whatever you need and put them under checkpoints.  
 1 . run the following command to start training, see [yacs](https://github.com/rbgirshick/yacs) for more instructions.  
 ```
 python main.py --config-file configs/voc.yaml  EXPER.experiment_name voc_512 devices 0,
