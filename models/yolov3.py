@@ -1,18 +1,14 @@
-import torch
-from models.mobilev2 import MobileNetV2,conv_bn,sepconv_bn,conv_bias
-import torch.nn as nn
-from collections import OrderedDict
-import pickle
-from models.helper import *
-from models.baseblock import *
+from models.backbone import MobileNetV2,darknet53,darknet21
+from models.backbone.helper import *
+from models.backbone.baseblock import *
 
 class YoloV3(nn.Module):
     def __init__(self,cfg):
         super().__init__()
         self.numclass=cfg.numcls
         self.gt_per_grid=cfg.gt_per_grid
-        self.mobilev2=MobileNetV2()
-        load_mobilev2(self.mobilev2,'models/mobilenet_v2.pth')
+        self.backbone= eval(cfg.backbone)()
+        load_mobilev2(self.backbone,'models/mobilenet_v2.pth')
         self.heads=[]
         self.headslarge=nn.Sequential(OrderedDict([
             ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
@@ -105,7 +101,7 @@ class YoloV3(nn.Module):
         return output
 
     def forward(self,input):
-        feat_small,feat_mid,feat_large=self.mobilev2(input)
+        feat_small,feat_mid,feat_large=self.backbone(input)
         conv=self.headslarge(feat_large)
         outlarge=self.detlarge(conv)
 
@@ -131,13 +127,8 @@ class YoloV3(nn.Module):
 
 
 if __name__ == '__main__':
-    import pickle
-    from utils.util import img_preprocess2
-    import cv2
-    import onnx
     import torch.onnx
-    from collections import defaultdict
-    from mmcv.runner import load_checkpoint
+
     # net=YoloV3(20)
     net=YoloV3(0)
     load_tf_weights(net,'cocoweights-half.pkl')

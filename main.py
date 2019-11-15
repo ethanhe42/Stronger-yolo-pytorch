@@ -5,7 +5,7 @@ from yacscfg import _C as cfg
 import os
 from torch import optim
 import argparse
-
+import torch
 def main(args):
     gpus=[str(g) for g in args.devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(gpus)
@@ -28,7 +28,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default='configs/voc1anchor.yaml'
+        # default='configs/voc_1gtnorelu.yaml'
+        default = 'configs/voc_darknet.yaml'
     )
 
     parser.add_argument(

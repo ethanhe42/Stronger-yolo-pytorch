@@ -6,5 +6,5 @@ summary/
 weights/
 *mine.py
 *.txt
-yolov3.weights
-darknet53.conv.74
+checkpoints/yolov3.weights
+checkpoints/darknet53.conv.74

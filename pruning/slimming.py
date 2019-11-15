@@ -1,8 +1,8 @@
 from pruning.BasePruner import BasePruner
 from pruning.Block import *
-from models.baseblock import InvertedResidual, conv_bn, sepconv_bn, conv_bias
-import matplotlib.pyplot as plt
-import numpy as np
+from models.backbone.baseblock import InvertedResidual, conv_bn, sepconv_bn, conv_bias
+
+
 class SlimmingPruner(BasePruner):
     def __init__(self, Trainer, newmodel, pruneratio=0.1):
         super().__init__(Trainer, newmodel)

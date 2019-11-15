@@ -1,21 +1,17 @@
-import torch
-from models.mobilev2 import MobileNetV2,conv_bn,sepconv_bn,conv_bias
-import torch.nn as nn
-from collections import OrderedDict
-import pickle
-from models.helper import *
-from models.baseblock import *
+from models.backbone import MobileNetV2,darknet53,darknet21
+from models.backbone.helper import *
+from models.backbone.baseblock import *
 
 class YoloV3KL(nn.Module):
     def __init__(self,cfg):
         super().__init__()
         self.numclass=cfg.numcls
         self.gt_per_grid=cfg.gt_per_grid
-        self.mobilev2=MobileNetV2()
-        load_mobilev2(self.mobilev2,'models/mobilenet_v2.pth')
+        self.backbone=eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
+        self.outC=self.backbone.backbone_outchannels
         self.heads=[]
         self.headslarge=nn.Sequential(OrderedDict([
-            ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
+            ('conv0',conv_bn(self.outC[0],512,kernel=1,stride=1,padding=0)),
             ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv2', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
             ('conv3', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -31,7 +27,7 @@ class YoloV3KL(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmid=nn.Sequential(OrderedDict([
-            ('conv8',conv_bn(96+256,256,kernel=1,stride=1,padding=0)),
+            ('conv8',conv_bn(self.outC[1]+256,256,kernel=1,stride=1,padding=0)),
             ('conv9', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv10', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
             ('conv11', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -47,7 +43,7 @@ class YoloV3KL(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmall=nn.Sequential(OrderedDict([
-            ('conv16',conv_bn(32+128,128,kernel=1,stride=1,padding=0)),
+            ('conv16',conv_bn(self.outC[2]+128,128,kernel=1,stride=1,padding=0)),
             ('conv17', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv18', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
             ('conv19', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -107,7 +103,7 @@ class YoloV3KL(nn.Module):
         return output
 
     def forward(self,input):
-        feat_small,feat_mid,feat_large=self.mobilev2(input)
+        feat_small,feat_mid,feat_large=self.backbone(input)
         conv=self.headslarge(feat_large)
         outlarge=self.detlarge(conv)
 
@@ -132,13 +128,8 @@ class YoloV3KL(nn.Module):
         return outsmall,outmid,outlarge,predsmall,predmid,predlarge
 
 if __name__ == '__main__':
-    import pickle
-    from utils.util import img_preprocess2
-    import cv2
-    import onnx
     import torch.onnx
-    from collections import defaultdict
-    from mmcv.runner import load_checkpoint
+
     # net=YoloV3(20)
     net=YoloV3(0)
     load_tf_weights(net,'cocoweights-half.pkl')

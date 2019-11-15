@@ -28,6 +28,8 @@ MODEL:
   clsfocal: True
   modeltype: YoloV3KL
   seprelu: False
+  backbone: 'MobileNetV2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
 EVAL:
   varvote: True
   soft: False
@@ -45,4 +47,4 @@ OPTIM:
 Prune:
   sparse: False
 
-devices: (1,)
+devices: (0,)
