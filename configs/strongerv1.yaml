@@ -1,0 +1,50 @@
+MODEL:
+  LABEL: [
+  "aeroplane",
+  "bicycle",
+  "bird",
+  "boat",
+  "bottle",
+  "bus",
+  "car",
+  "cat",
+  "chair",
+  "cow",
+  "diningtable",
+  "dog",
+  "horse",
+  "motorbike",
+  "person",
+  "pottedplant",
+  "sheep",
+  "sofa",
+  "train",
+  "tvmonitor"
+  ]
+  numcls: 20
+  gt_per_grid: 1
+  boxloss: KL
+  l1scale: 0.1
+  clsfocal: True
+  modeltype: StrongerV1
+  seprelu: False
+  backbone: 'darknet53'
+  backbone_pretrained: 'checkpoints/yolov3.weights'
+EVAL:
+  varvote: True
+  soft: False
+EXPER:
+  experiment_name: 'strongerv1'
+DATASET:
+  dataset: 'VOC'
+
+OPTIM:
+  batch_size: 6
+  lr_initial: 1e-4
+  total_epoch: 50
+  milestones: [25,40]
+
+Prune:
+  sparse: False
+
+devices: (0,)

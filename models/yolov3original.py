@@ -2,23 +2,24 @@ from models.backbone import MobileNetV2,darknet53,darknet21
 from models.backbone.helper import *
 from models.backbone.baseblock import *
 
-class YoloV3(nn.Module):
+class StrongerV1(nn.Module):
     def __init__(self,cfg):
         super().__init__()
         self.numclass=cfg.numcls
         self.gt_per_grid=cfg.gt_per_grid
-        self.backbone= eval(cfg.backbone)()
-        load_mobilev2(self.backbone,'models/mobilenet_v2.pth')
+        self.backbone = eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
+        self.outC = self.backbone.backbone_outchannels
         self.heads=[]
+        self.activate_type='leaky'
         self.headslarge=nn.Sequential(OrderedDict([
-            ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
-            ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv0',conv_bn(self.outC[0],512,kernel=1,stride=1,padding=0)),
+            ('conv1', conv_bn(512, 1024, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv2', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
-            ('conv3', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv3', conv_bn(512, 1024, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv4', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
         ]))
         self.detlarge=nn.Sequential(OrderedDict([
-            ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv5',conv_bn(512,1024,kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv6', conv_bias(1024, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
         self.mergelarge=nn.Sequential(OrderedDict([
@@ -27,14 +28,14 @@ class YoloV3(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmid=nn.Sequential(OrderedDict([
-            ('conv8',conv_bn(96+256,256,kernel=1,stride=1,padding=0)),
-            ('conv9', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv8',conv_bn(self.outC[1]+256,256,kernel=1,stride=1,padding=0)),
+            ('conv9', conv_bn(256, 512, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv10', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
-            ('conv11', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv11', conv_bn(256, 512, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv12', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
         ]))
         self.detmid=nn.Sequential(OrderedDict([
-            ('conv13',sepconv_bn(256,512,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv13',conv_bn(256,512,kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv14', conv_bias(512, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
         self.mergemid=nn.Sequential(OrderedDict([
@@ -43,14 +44,14 @@ class YoloV3(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmall=nn.Sequential(OrderedDict([
-            ('conv16',conv_bn(32+128,128,kernel=1,stride=1,padding=0)),
-            ('conv17', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv16',conv_bn(self.outC[2]+128,128,kernel=1,stride=1,padding=0)),
+            ('conv17', conv_bn(128, 256, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv18', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
-            ('conv19', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv19', conv_bn(128, 256, kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv20', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
         ]))
         self.detsmall=nn.Sequential(OrderedDict([
-            ('conv21',sepconv_bn(128,256,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
+            ('conv21',conv_bn(128,256,kernel=3, stride=1, padding=1,activate=self.activate_type)),
             ('conv22', conv_bias(256, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
     def decode(self,output,stride):
@@ -130,9 +131,8 @@ if __name__ == '__main__':
     import torch.onnx
 
     # net=YoloV3(20)
-    net=YoloV3(0)
-    load_tf_weights(net,'cocoweights-half.pkl')
-
+    net=StrongerV1()
+    print(net)
     assert 0
     model=net.eval()
     load_checkpoint(model,torch.load('checkpoints/coco512_prune/checkpoint-best.pth'))

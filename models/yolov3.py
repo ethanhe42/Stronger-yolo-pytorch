@@ -7,10 +7,11 @@ class YoloV3(nn.Module):
         super().__init__()
         self.numclass=cfg.numcls
         self.gt_per_grid=cfg.gt_per_grid
-        self.backbone=eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
+        self.backbone = eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
+        self.outC = self.backbone.backbone_outchannels
         self.heads=[]
         self.headslarge=nn.Sequential(OrderedDict([
-            ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
+            ('conv0',conv_bn(self.outC[0],512,kernel=1,stride=1,padding=0)),
             ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv2', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
             ('conv3', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -26,7 +27,7 @@ class YoloV3(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmid=nn.Sequential(OrderedDict([
-            ('conv8',conv_bn(96+256,256,kernel=1,stride=1,padding=0)),
+            ('conv8',conv_bn(self.outC[1]+256,256,kernel=1,stride=1,padding=0)),
             ('conv9', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv10', conv_bn(512, 256, kernel=1,stride=1,padding=0)),
             ('conv11', sepconv_bn(256, 512, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -42,7 +43,7 @@ class YoloV3(nn.Module):
         ]))
         #-----------------------------------------------
         self.headsmall=nn.Sequential(OrderedDict([
-            ('conv16',conv_bn(32+128,128,kernel=1,stride=1,padding=0)),
+            ('conv16',conv_bn(self.outC[2]+128,128,kernel=1,stride=1,padding=0)),
             ('conv17', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv18', conv_bn(256, 128, kernel=1,stride=1,padding=0)),
             ('conv19', sepconv_bn(128, 256, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),

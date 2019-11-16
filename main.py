@@ -1,4 +1,4 @@
-from models import YoloV3,YoloV3KL
+from models import *
 from trainers import *
 import json
 from yacscfg import _C as cfg
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--config-file",
         # default='configs/voc_1gtnorelu.yaml'
-        default = 'configs/voc_darknet.yaml'
+        default = 'configs/strongerv1.yaml'
     )
 
     parser.add_argument(

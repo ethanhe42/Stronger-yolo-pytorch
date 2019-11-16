@@ -15,6 +15,8 @@ class conv_bn(nn.Module):
                 ('bn', nn.BatchNorm2d(oup)),
                 ('relu', nn.LeakyReLU(0.1))
             ]))
+        else:
+            raise AttributeError("activate type not supported")
     def forward(self, input):
         return self.convbn(input)
 
