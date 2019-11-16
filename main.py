@@ -28,8 +28,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        # default='configs/voc_1gtnorelu.yaml'
-        default = 'configs/strongerv1.yaml'
+        default = 'configs/strongerv3.yaml'
     )
 
     parser.add_argument(

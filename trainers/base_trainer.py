@@ -9,7 +9,7 @@ from tensorboardX import SummaryWriter
 from utils.util import AverageMeter
 import torch
 import matplotlib.pyplot as plt
-from models.yolov3 import load_tf_weights
+from models.backbone.helper import load_tf_weights
 from torch.utils.data import DataLoader
 from PIL import Image
 from tqdm import tqdm

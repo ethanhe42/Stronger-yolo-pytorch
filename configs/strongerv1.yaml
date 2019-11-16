@@ -22,12 +22,8 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-  gt_per_grid: 1
-  boxloss: KL
-  l1scale: 0.1
-  clsfocal: True
+  gt_per_grid: 3
   modeltype: StrongerV1
-  seprelu: False
   backbone: 'darknet53'
   backbone_pretrained: 'checkpoints/yolov3.weights'
 EVAL:

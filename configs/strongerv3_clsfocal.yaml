@@ -22,21 +22,23 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
+  modeltype: StrongerV3
+  backbone: 'MobileNetV2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
+  clsfocal: True
 
 EXPER:
-  experiment_name: 'voc_512_sparse'
-  resume: 'best'
+  experiment_name: 'voc_512_clsfocal'
 DATASET:
   dataset: 'VOC'
 
 OPTIM:
   batch_size: 12
   lr_initial: 2e-4
-  total_epoch: 3
-  milestones: [1,2]
-
+  total_epoch: 60
+  milestones: [30,45]
+EVAL:
+  iou_thres: 0.7
 Prune:
-  sparse: True
-  pruneratio: 0.35
-
-debug: True
+  sparse: False
+devices: (1,)

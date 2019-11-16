@@ -8,33 +8,32 @@ This project will also try out some model-compression approaches(e.g. channel-pr
 python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 
 ## Quick Start
-All checkpoints are available at [百度网盘](https://pan.baidu.com/s/1vwz1r2hb67-Mz2eZbGyU7Q)(**2tya**), download whatever you need and put them under checkpoints.  
 1 . run the following command to start training, see [yacs](https://github.com/rbgirshick/yacs) for more instructions.  
 ```
-python main.py --config-file configs/voc.yaml  EXPER.experiment_name voc_512 devices 0,
+python main.py --config-file configs/strongerv3.yaml  EXPER.experiment_name voc_512 devices 0,
 ```
 2 . run the following command to test
 ```
-python main.py --config-file configs/voc.yaml EXPER.resume best  do_test True EXPER.experiment_name voc_512 devices 0,1,
+python main.py --config-file configs/strongerv3.yaml EXPER.resume best  do_test True EXPER.experiment_name voc_512 devices 0,1,
 ```
-## Improvement with latest papers
+## Improvement with latest papers(Using StrongerV3 as baseline)
 |model|mAP50|mAP75|configs|
 | ------ | ------ | ------ |------ |
 |baseline(with GIOU)|0.765 |0.391|voc.yaml|
-|+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |voc_clsfocal.yaml|
-|+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |voc_kl_clsfocal.yaml|
-|+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |voc_kl_clsfocal.yaml|
+|+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |strongerv3_clsfocal.yaml|
+|+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |strongerv3_kl.yaml|
+|+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |strongerv3_kl.yaml|
 
 Note:  
 1.Set EVAL.varvote=True to enable varvote in KL-loss. 
 ## Model Pruning
 1 . training with sparse regularization
 ```
-python main.py --config-file configs/voc.yaml  EXPER.experiment_name voc_512_sparse Prune.sparse True Prune.sr 0.01  
+python main.py --config-file configs/strongerv3_sparse.yaml  EXPER.experiment_name voc_512_sparse Prune.sparse True Prune.sr 0.01  
 ```
 2 . Pruning and Finetune, check [MobileV2 Pruning](https://github.com/wlguan/MobileNet-v2-pruning) for a simplified example.
 ```
-python main_prune.py --config-file configs/voc_prune.yaml  EXPER.experiment_name voc_512_sparse Prune.sparse True Prune.pruneratio 0.3   
+python main_prune.py --config-file configs/strongerv3_prune.yaml  EXPER.experiment_name voc_512_sparse Prune.sparse True Prune.pruneratio 0.35   
 ```
 ### Transfer back to Tensorflow and make it portable.
 Check [MNN-yolov3](https://github.com/wlguan/MNN-yolov3).

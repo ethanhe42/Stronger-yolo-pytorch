@@ -21,15 +21,12 @@ MODEL:
   "train",
   "tvmonitor"
   ]
-  modeltype: YoloV3KL
   numcls: 20
-  boxloss: KL
-  l1scale: 0.1
-  clsfocal: True
-EVAL:
-  varvote: True
+  modeltype: StrongerV3
+  backbone: 'MobileNetV2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
 EXPER:
-  experiment_name: 'voc_512kl_focal'
+  experiment_name: 'voc_512_sparse'
 DATASET:
   dataset: 'VOC'
 
@@ -40,6 +37,4 @@ OPTIM:
   milestones: [30,45]
 
 Prune:
-  sparse: False
-
-devices: (0,)
+  sparse: True
