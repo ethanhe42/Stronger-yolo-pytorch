@@ -22,7 +22,7 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-  modeltype: StrongerV3
+  modeltype: StrongerV3KL
   backbone: 'MobileNetV2'
   backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
   boxloss: KL
@@ -31,7 +31,7 @@ MODEL:
 EVAL:
   varvote: True
 EXPER:
-  experiment_name: 'voc_512kl_focal'
+  experiment_name: 'strongerv3_kl'
 DATASET:
   dataset: 'VOC'
 

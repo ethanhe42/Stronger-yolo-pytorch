@@ -28,7 +28,7 @@ MODEL:
   clsfocal: True
 
 EXPER:
-  experiment_name: 'voc_512_clsfocal'
+  experiment_name: 'strongerv3_clsfocal'
 DATASET:
   dataset: 'VOC'
 

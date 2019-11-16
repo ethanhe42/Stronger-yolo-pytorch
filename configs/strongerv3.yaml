@@ -26,7 +26,7 @@ MODEL:
   backbone: 'MobileNetV2'
   backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
 EXPER:
-  experiment_name: 'voc_512'
+  experiment_name: 'strongerv3'
 DATASET:
   dataset: 'VOC'
 
