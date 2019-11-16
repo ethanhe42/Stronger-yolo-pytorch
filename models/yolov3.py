@@ -18,7 +18,7 @@ class YoloV3(nn.Module):
             ('conv4', conv_bn(1024, 512, kernel=1,stride=1,padding=0)),
         ]))
         self.detlarge=nn.Sequential(OrderedDict([
-            ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1,seprelu=cfg.sepreluvvvvvvvvv)),
+            ('conv5',sepconv_bn(512,1024,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv6', conv_bias(1024, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
         self.mergelarge=nn.Sequential(OrderedDict([
