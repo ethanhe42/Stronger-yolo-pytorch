@@ -1,13 +1,20 @@
 import torch.nn as nn
 from collections import OrderedDict
 class conv_bn(nn.Module):
-    def __init__(self,inp, oup, kernel,stride,padding):
+    def __init__(self,inp, oup, kernel,stride,padding,activate='relu6'):
         super(conv_bn, self).__init__()
-        self.convbn=nn.Sequential(OrderedDict([
-            ('conv', nn.Conv2d(inp, oup, kernel, stride, padding, bias=False)),
-            ('bn', nn.BatchNorm2d(oup)),
-            ('relu', nn.ReLU6(inplace=True))
-        ]))
+        if activate=='relu6':
+            self.convbn=nn.Sequential(OrderedDict([
+                ('conv', nn.Conv2d(inp, oup, kernel, stride, padding, bias=False)),
+                ('bn', nn.BatchNorm2d(oup)),
+                ('relu', nn.ReLU6(inplace=True))
+            ]))
+        elif activate=='leaky':
+            self.convbn = nn.Sequential(OrderedDict([
+                ('conv', nn.Conv2d(inp, oup, kernel, stride, padding, bias=False)),
+                ('bn', nn.BatchNorm2d(oup)),
+                ('relu', nn.LeakyReLU(0.1))
+            ]))
     def forward(self, input):
         return self.convbn(input)
 

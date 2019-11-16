@@ -7,7 +7,8 @@ class YoloV3(nn.Module):
         super().__init__()
         self.numclass=cfg.numcls
         self.gt_per_grid=cfg.gt_per_grid
-        self.backbone=eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
+        self.backbone= eval(cfg.backbone)()
+        load_mobilev2(self.backbone,'models/mobilenet_v2.pth')
         self.heads=[]
         self.headslarge=nn.Sequential(OrderedDict([
             ('conv0',conv_bn(1280,512,kernel=1,stride=1,padding=0)),
