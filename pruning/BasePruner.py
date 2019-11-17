@@ -1,7 +1,7 @@
 import os
 import torch
 from trainers.base_trainer import BaseTrainer
-from models.mobilev2 import InvertedResidual, conv_bn, sepconv_bn,conv_bias
+from models.backbone.baseblock import InvertedResidual, conv_bn, sepconv_bn,conv_bias
 from pruning.Block import *
 
 class BasePruner:
