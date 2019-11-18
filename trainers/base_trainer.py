@@ -101,12 +101,7 @@ class BaseTrainer:
 
     def _get_dataset(self):
         self.train_dataloader, self.test_dataloader = eval('get_{}'.format(self.dataset_name))(
-            dataset_root=self.dataset_root,
-            batch_size=self.args.OPTIM.batch_size,
-            trainsizes=self.args.EXPER.train_sizes,
-            testsize=self.args.EXPER.test_size,
-            debug=self.args.debug,
-            gt_pergrid=self.args.MODEL.gt_per_grid
+            cfg=self.args
         )
 
     def _get_loggers(self):
@@ -206,36 +201,6 @@ class BaseTrainer:
                 pred_conf = pred_bbox[:, 4]
                 pred_prob = pred_bbox[:, 5:]
             org_h, org_w = org_img_shape
-            ratio_w, ratio_h = test_input_size / org_w, test_input_size / org_h
-            pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2]) / ratio_w
-            pred_coor[:, 1::2] = 1.0 * (pred_coor[:, 1::2]) / ratio_h
-            x1,y1,x2,y2=torch.split(pred_coor,[1,1,1,1],dim=1)
-            x1,y1=torch.max(x1,torch.zeros_like(x1)),torch.max(y1,torch.zeros_like(y1))
-            x2,y2=torch.min(x2,torch.ones_like(x2)*(org_w-1)),torch.min(y2,torch.ones_like(y2)*(org_h-1))
-            pred_coor=torch.cat([x1,y1,x2,y2],dim=-1)
-
-            # ***********************
-            if pred_prob.shape[-1]==0:
-                pred_prob = torch.ones((pred_prob.shape[0], 1)).cuda()
-            # ***********************
-            scores = pred_conf.unsqueeze(-1) * pred_prob
-            bboxes = torch.cat([pred_coor, scores], dim=-1)
-            if self.args.MODEL.boxloss == 'KL' and self.args.EVAL.varvote:
-                return bboxes, pred_vari
-            else:
-                return bboxes,None
-        def _postprocessold(pred_bbox, test_input_size, org_img_shape):
-            if self.args.MODEL.boxloss == 'KL':
-                pred_coor = pred_bbox[:, 0:4]
-                pred_vari = pred_bbox[:, 4:8]
-                pred_vari = torch.exp(pred_vari)
-                pred_conf = pred_bbox[:, 8]
-                pred_prob = pred_bbox[:, 9:]
-            else:
-                pred_coor = pred_bbox[:, 0:4]
-                pred_conf = pred_bbox[:, 4]
-                pred_prob = pred_bbox[:, 5:]
-            org_h, org_w = org_img_shape
             resize_ratio = min(1.0 * test_input_size / org_w, 1.0 * test_input_size / org_h)
             dw = (test_input_size - resize_ratio * org_w) / 2
             dh = (test_input_size - resize_ratio * org_h) / 2
@@ -269,9 +234,7 @@ class BaseTrainer:
                 outputs = self.model(imgs)
             for imgidx in range(len(outputs)):
 
-                bbox,bboxvari = _postprocessold(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
-                #nms_boxes, nms_scores, nms_labels = torch_nms(bbox[:,:4],bbox[:,4:],
-                 #                                             num_classes=bbox[:,4:].shape[-1],score_thresh=scorethres)
+                bbox,bboxvari = _postprocess(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
                 nms_boxes, nms_scores, nms_labels = torch_nms(self.args.EVAL,bbox,
                                                                  variance=bboxvari)
                 if nms_boxes is not None:

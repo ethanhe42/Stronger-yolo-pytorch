@@ -44,6 +44,7 @@ _C.OPTIM.milestones=[30,45]
 _C.DATASET=CN()
 _C.DATASET.dataset= 'VOC'
 _C.DATASET.dataset_root='/home/gwl/datasets/VOCdevkit'
+_C.DATASET.numworker=4
 
 _C.LOG=CN()
 _C.LOG.log_iter=200
