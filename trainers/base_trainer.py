@@ -134,7 +134,7 @@ class BaseTrainer:
             for m in self.model.named_modules():
                 if isinstance(m[1], nn.BatchNorm2d):
                     allbns.append(m[0])
-                    if 'project_bn' in m[0] or 'dw_bn' in m[0]:
+                    if 'project_bn' in m[0] or 'dw_bn' in m[0] or 'residual_downsample' in m[0]:
                         continue
                     self.sparseBN.append(m[1])
             print("{}/{} bns will be sparsed.".format(len(self.sparseBN),len(allbns)))
@@ -146,7 +146,7 @@ class BaseTrainer:
             self.writer.add_scalar("learning_rate", lr_current, epoch)
             for k, v in self.logger_losses.items():
                 self.writer.add_scalar(k, v.get_avg(), global_step=self.global_iter)
-            if epoch > 2:
+            if epoch > 15:
                 results, imgs = self._valid_epoch()
                 for k, v in zip(self.logger_custom, results):
                     self.writer.add_scalar(k, v, global_step=self.global_epoch)
@@ -224,7 +224,38 @@ class BaseTrainer:
                 return bboxes, pred_vari
             else:
                 return bboxes,None
+        def _postprocessold(pred_bbox, test_input_size, org_img_shape):
+            if self.args.MODEL.boxloss == 'KL':
+                pred_coor = pred_bbox[:, 0:4]
+                pred_vari = pred_bbox[:, 4:8]
+                pred_vari = torch.exp(pred_vari)
+                pred_conf = pred_bbox[:, 8]
+                pred_prob = pred_bbox[:, 9:]
+            else:
+                pred_coor = pred_bbox[:, 0:4]
+                pred_conf = pred_bbox[:, 4]
+                pred_prob = pred_bbox[:, 5:]
+            org_h, org_w = org_img_shape
+            resize_ratio = min(1.0 * test_input_size / org_w, 1.0 * test_input_size / org_h)
+            dw = (test_input_size - resize_ratio * org_w) / 2
+            dh = (test_input_size - resize_ratio * org_h) / 2
+            pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2] - dw) / resize_ratio
+            pred_coor[:, 1::2] = 1.0 * (pred_coor[:, 1::2] - dh) / resize_ratio
+            x1,y1,x2,y2=torch.split(pred_coor,[1,1,1,1],dim=1)
+            x1,y1=torch.max(x1,torch.zeros_like(x1)),torch.max(y1,torch.zeros_like(y1))
+            x2,y2=torch.min(x2,torch.ones_like(x2)*(org_w-1)),torch.min(y2,torch.ones_like(y2)*(org_h-1))
+            pred_coor=torch.cat([x1,y1,x2,y2],dim=-1)
 
+            # ***********************
+            if pred_prob.shape[-1]==0:
+                pred_prob = torch.ones((pred_prob.shape[0], 1)).cuda()
+            # ***********************
+            scores = pred_conf.unsqueeze(-1) * pred_prob
+            bboxes = torch.cat([pred_coor, scores], dim=-1)
+            if self.args.MODEL.boxloss == 'KL' and self.args.EVAL.varvote:
+                return bboxes, pred_vari
+            else:
+                return bboxes,None
         s = time.time()
         self.model.eval()
         for idx_batch, inputs in tqdm(enumerate(self.test_dataloader),total=len(self.test_dataloader)):
@@ -238,7 +269,7 @@ class BaseTrainer:
                 outputs = self.model(imgs)
             for imgidx in range(len(outputs)):
 
-                bbox,bboxvari = _postprocess(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
+                bbox,bboxvari = _postprocessold(outputs[imgidx], imgs.shape[-1], ori_shapes[imgidx])
                 #nms_boxes, nms_scores, nms_labels = torch_nms(bbox[:,:4],bbox[:,4:],
                  #                                             num_classes=bbox[:,4:].shape[-1],score_thresh=scorethres)
                 nms_boxes, nms_scores, nms_labels = torch_nms(self.args.EVAL,bbox,

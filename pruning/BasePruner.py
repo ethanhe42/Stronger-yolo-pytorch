@@ -1,24 +1,26 @@
 import os
 import torch
 from trainers.base_trainer import BaseTrainer
-from models.mobilev2 import InvertedResidual, conv_bn, sepconv_bn,conv_bias
+from models.backbone.baseblock import InvertedResidual, conv_bn, sepconv_bn,conv_bias,DarknetBlock
 from pruning.Block import *
 
 class BasePruner:
-    def __init__(self,trainer:BaseTrainer,newmodel):
+    def __init__(self,trainer:BaseTrainer,newmodel,cfg):
         self.model=trainer.model
         self.newmodel=newmodel
         self.trainer=trainer
         self.blocks=[]
         self.pruneratio = 0.1
-
+        self.args=cfg
     def prune(self):
         blocks = [None]
         name2layer = {}
         for midx, (name, module) in enumerate(self.model.named_modules()):
-            if type(module) not in [InvertedResidual, conv_bn, nn.Linear, sepconv_bn, conv_bias]:
+            if type(module) not in [InvertedResidual, conv_bn, nn.Linear, sepconv_bn, conv_bias,DarknetBlock]:
                 continue
             idx = len(blocks)
+            if isinstance(module,DarknetBlock):
+                blocks.append(DarkBlock(name, idx, [blocks[-1]], list(module.state_dict().values())))
             if isinstance(module, InvertedResidual):
                 blocks.append(InverRes(name, idx, [blocks[-1]], list(module.state_dict().values())))
             if isinstance(module, conv_bn):
@@ -35,12 +37,11 @@ class BasePruner:
             if b.layername == 'mergelarge.conv7':
                 b.inputlayer=[name2layer['headslarge.conv4']]
             if b.layername == 'headsmid.conv8':
-                b.inputlayer.append(name2layer['mobilev2.features.13'])
-
+                b.inputlayer.append(name2layer[self.args.bbOutName[1]])
             if b.layername == 'mergemid.conv15':
                 b.inputlayer=[name2layer['headsmid.conv12']]
             if b.layername == 'headsmall.conv16':
-                b.inputlayer.append(name2layer['mobilev2.features.6'])
+                b.inputlayer.append(name2layer[self.args.bbOutName[0]])
     def test(self,newmodel=False,validiter=20):
         if newmodel:
             self.trainer.model=self.newmodel

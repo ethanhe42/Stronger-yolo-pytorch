@@ -37,8 +37,6 @@ OPTIM:
   lr_initial: 2e-4
   total_epoch: 60
   milestones: [30,45]
-EVAL:
-  iou_thres: 0.7
 Prune:
   sparse: False
 devices: (1,)

@@ -40,5 +40,6 @@ OPTIM:
 Prune:
   sparse: True
   pruneratio: 0.35
+  bbOutName: ('mobilev2.features.6','mobilev2.features.13','mobilev2.features.18')
 
 debug: True

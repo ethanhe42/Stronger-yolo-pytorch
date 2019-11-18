@@ -87,28 +87,24 @@ def loss_per_scale(conv, pred, label, bboxes, stride,cfg):
     label_coor = label[..., 0:4]
     respond_bbox = label[..., 4:5]
     label_prob = label[..., 5:-1]
-
+    label_mixw = label[..., -1:]
     # 计算GIOU损失
     bbox_wh = label_coor[..., 2:] - label_coor[..., :2]
     bbox_loss_scale = 2.0 - 1.0 * bbox_wh[..., 0:1] * bbox_wh[..., 1:2] / (input_size ** 2)
     if cfg.boxloss == 'iou':
         giou = GIOUloss.GIOU(pred_coor, label_coor).unsqueeze(-1)
         giou_loss = respond_bbox * bbox_loss_scale * (1.0 - giou)
-        bbox_loss = giou_loss.sum()
+        bbox_loss = giou_loss
     elif cfg.boxloss == 'l1':
-        l1_loss = respond_bbox * bbox_loss_scale * smooth_loss(target=label_coor, input=pred_coor)
-        bbox_loss = l1_loss.sum() * cfg.l1scale
-    elif cfg.boxloss == 'l1+iou':
-        giou = GIOUloss.GIOU(pred_coor, label_coor).unsqueeze(-1)
-        giou_loss = respond_bbox * bbox_loss_scale * (1.0 - giou)
-        l1_loss = respond_bbox * bbox_loss_scale * smooth_loss(target=label_coor, input=pred_coor)
-        bbox_loss = l1_loss.sum() * cfg.l1scale + giou_loss.sum()
+        l1_loss = respond_bbox * bbox_loss_scale * smooth_loss(target=label_coor, input=pred_coor) * cfg.l1scale
+        bbox_loss = l1_loss
     elif cfg.boxloss == 'KL':
         l1_loss = respond_bbox * bbox_loss_scale * (
-                torch.exp(-pred_vari) * smooth_loss(target=label_coor, input=pred_coor) + 0.5 * pred_vari)
-        bbox_loss = l1_loss.sum() * cfg.l1scale
+                torch.exp(-pred_vari) * smooth_loss(target=label_coor, input=pred_coor) + 0.5 * pred_vari) * cfg.l1scale
+        bbox_loss = l1_loss
     else:
         raise NotImplementedError
+    bbox_loss=bbox_loss*label_mixw
     # (2)计算confidence损失
     iou = GIOUloss.iou_calc3(pred_coor.unsqueeze(4),bboxes.unsqueeze(1).unsqueeze(1).unsqueeze(1))
     max_iou,_=torch.max(iou,dim=-1)
@@ -123,6 +119,7 @@ def loss_per_scale(conv, pred, label, bboxes, stride,cfg):
             +
             respond_bgd * bcelogit_loss(target=respond_bbox, input=conv_raw_conf)
     )
+    conf_loss=conf_loss*label_mixw
     # (3)计算classes损失
     if conv_raw_prob.shape[-1]!=0:
         if cfg.clsfocal:
@@ -132,7 +129,8 @@ def loss_per_scale(conv, pred, label, bboxes, stride,cfg):
             prob_loss = respond_bbox * bcelogit_loss(target=label_prob, input=conv_raw_prob)
     else:
         prob_loss = torch.zeros_like(label_prob)
-    return bbox_loss,conf_loss.sum(),prob_loss.sum()
+    prob_loss=prob_loss*label_mixw
+    return bbox_loss.sum(),conf_loss.sum(),prob_loss.sum()
     # loss = tf.concat([GIOU_loss, conf_loss, prob_loss], axis=-1)
     # loss = torch.cat([GIOU_loss, conf_loss], dim=-1)
     # loss = loss * label_mixw

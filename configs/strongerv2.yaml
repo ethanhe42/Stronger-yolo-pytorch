@@ -25,7 +25,7 @@ MODEL:
   gt_per_grid: 3
   modeltype: StrongerV1
   backbone: 'darknet53'
-  backbone_pretrained: 'checkpoints/darknet53.conv.74'
+  backbone_pretrained: 'checkpoints/darknet.pth'
 EVAL:
   varvote: True
   soft: False
@@ -43,4 +43,4 @@ OPTIM:
 Prune:
   sparse: False
 
-devices: (0,)
+devices: (1,)

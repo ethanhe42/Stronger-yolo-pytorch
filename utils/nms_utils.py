@@ -32,7 +32,7 @@ def torch_nms(cfg, boxes, variance=None):
 
             weight = torch.ones_like(iou)
             if not cfg.soft:
-                weight[iou > cfg.iou_thres] = 0
+                weight[iou > cfg.nms_iou] = 0
             else:
                 weight = torch.exp(-1.0 * (iou ** 2 / cfg.softsigma))
             clsboxes[:, 4] = clsboxes[:, 4] * weight

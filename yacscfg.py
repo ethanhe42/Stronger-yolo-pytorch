@@ -9,7 +9,7 @@ _C.MODEL=CN()
 _C.MODEL.LABEL=[]
 _C.MODEL.modeltype = 'YoloV3'
 _C.MODEL.backbone = 'MobileNetV2'
-_C.MODEL.backbone_pretrained='checkpoints/mobilenet_v2.pth'
+_C.MODEL.backbone_pretrained=''
 _C.MODEL.numcls=20
 _C.MODEL.gt_per_grid=3
 _C.MODEL.clsfocal = False
@@ -20,6 +20,7 @@ _C.MODEL.l1scale = 1.0
 _C.EVAL=CN()
 #iou thres for VOC,default is map50
 _C.EVAL.iou_thres=0.5
+_C.EVAL.nms_iou=0.45
 _C.EVAL.softnms=False
 _C.EVAL.varvote=False
 _C.EVAL.vvsigma=0.05
@@ -51,6 +52,7 @@ _C.Prune=CN()
 _C.Prune.sparse=False
 _C.Prune.sr=0.01
 _C.Prune.pruneratio=0.0
+_C.Prune.bbOutName=('backbone.layer3.residual_7','backbone.layer4.residual_7','backbone.layer5.residual_3')
 
 
 

@@ -1,4 +1,4 @@
-from models.yolov3 import YoloV3
+from models import *
 from trainers import *
 import json
 from yacscfg import _C as cfg
@@ -15,9 +15,8 @@ import torch
 def main(args):
     gpus=[str(g) for g in args.devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(gpus)
-    model = YoloV3(numclass=args.MODEL.numcls,gt_per_grid=args.MODEL.gt_per_grid).cuda().eval()
-    newmodel = YoloV3(numclass=args.MODEL.numcls,gt_per_grid=args.MODEL.gt_per_grid).cuda().eval()
-
+    model = eval(cfg.MODEL.modeltype)(cfg=args.MODEL).cuda().eval()
+    newmodel = eval(cfg.MODEL.modeltype)(cfg=args.MODEL).cuda().eval()
     optimizer = optim.Adam(model.parameters(),lr=args.OPTIM.lr_initial)
     scheduler=optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.OPTIM.milestones, gamma=0.1)
     _Trainer = eval('Trainer_{}'.format(args.DATASET.dataset))(args=args,
@@ -26,7 +25,7 @@ def main(args):
                        lrscheduler=scheduler
                        )
 
-    pruner=SlimmingPruner(_Trainer,newmodel,pruneratio=args.Prune.pruneratio)
+    pruner=SlimmingPruner(_Trainer,newmodel,cfg=args.Prune)
     # pruner=l1normPruner(_Trainer,newmodel,pruneratio=0.)
     pruner.prune()
     ##---------count op
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default='configs/voc_prune.yaml'
+        default='configs/strongerv2_prune.yaml'
     )
 
     parser.add_argument(

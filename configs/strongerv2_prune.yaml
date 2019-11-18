@@ -22,27 +22,23 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-  gt_per_grid: 3
   modeltype: StrongerV1
   backbone: 'darknet53'
-  backbone_pretrained: 'checkpoints/darknetcoco.pth'
-EVAL:
-  varvote: True
-  soft: False
 EXPER:
-  experiment_name: 'strongerv1'
+  experiment_name: 'strongerv2_sparse'
   resume: 'best'
-
 DATASET:
   dataset: 'VOC'
 
 OPTIM:
-  batch_size: 8
-  lr_initial: 1e-4
-  total_epoch: 30
-  milestones: [18,25]
+  batch_size: 12
+  lr_initial: 2e-4
+  total_epoch: 3
+  milestones: [1,2]
 
 Prune:
-  sparse: False
+  sparse: True
+  pruneratio: 0.35
+  bbOutName: ('backbone.layer3.residual_7','backbone.layer4.residual_7','backbone.layer5.residual_3')
 
-devices: (0,)
+debug: True

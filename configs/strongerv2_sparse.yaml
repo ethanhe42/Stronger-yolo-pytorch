@@ -25,24 +25,22 @@ MODEL:
   gt_per_grid: 3
   modeltype: StrongerV1
   backbone: 'darknet53'
-  backbone_pretrained: 'checkpoints/darknetcoco.pth'
+  backbone_pretrained: 'checkpoints/darknet.pth'
 EVAL:
   varvote: True
   soft: False
 EXPER:
-  experiment_name: 'strongerv1'
-  resume: 'best'
-
+  experiment_name: 'strongerv2_sparse'
 DATASET:
   dataset: 'VOC'
 
 OPTIM:
   batch_size: 8
-  lr_initial: 1e-4
-  total_epoch: 30
-  milestones: [18,25]
+  lr_initial: 2e-4
+  total_epoch: 60
+  milestones: [30,45]
 
 Prune:
-  sparse: False
+  sparse: True
 
-devices: (0,)
+devices: (1,)

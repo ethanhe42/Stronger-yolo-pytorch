@@ -54,7 +54,25 @@ class VOCdataset:
 
     def __len__(self):
         return len(self._ids) // self.batch_size
+    def _parse_annotation(self,itemidx,random_trainsize):
+        try:
+            rootpath, filename = self._ids[itemidx]
+        except:
+            print("out of index ",itemidx)
+            rootpath, filename = self._ids[10]
 
+        annpath = self._annopath.format(rootpath, filename)
+        imgpath = self._imgpath.format(rootpath, filename)
+        fname, bboxes, labels = PascalVocXmlParser(annpath, self.labels).parse()
+        img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
+        if self.istrain:
+            img, bboxes = dataAug.random_horizontal_flip(np.copy(img), np.copy(bboxes))
+            img, bboxes = dataAug.random_crop(np.copy(img), np.copy(bboxes))
+            img, bboxes = dataAug.random_translate(np.copy(img), np.copy(bboxes))
+        ori_shape=img.shape[:2]
+        img, bboxes = dataAug.img_preprocess2(np.copy(img), np.copy(bboxes),
+                                              (random_trainsize, random_trainsize), True)
+        return img,bboxes,labels,imgpath,ori_shape
     def _load_batch(self, idx_batch, random_trainsize):
         outputshapes = random_trainsize // self.strides
 
@@ -74,24 +92,24 @@ class VOCdataset:
         max_mbbox_per_img = 0
         max_lbbox_per_img = 0
         for idx in range(self.batch_size):
-            rootpath, filename = self._ids[idx_batch * self.batch_size + idx]
-            annpath = self._annopath.format(rootpath, filename)
-            imgpath = self._imgpath.format(rootpath, filename)
-            fname, bboxes, labels = PascalVocXmlParser(annpath, self.labels).parse()
-            img = cv2.imread(imgpath, cv2.IMREAD_COLOR)
-            ori_shape = img.shape[:2]
-            # Load the annotation.
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img, bboxes = self._transform(random_trainsize, random_trainsize, img, bboxes)
+            idxitem=idx_batch * self.batch_size + idx
+            image_org,bboxes_org,labels_org,imgpath,ori_shape=self._parse_annotation(idxitem,random_trainsize)
+            if random.random() < 0.5 and self.istrain:
+                index_mix = random.randint(0,len(self._ids)-1)
+                image_mix, bboxes_mix,label_mix,_,_ = self._parse_annotation(index_mix,random_trainsize)
 
-            # data augmentation in original-strongeryolo
-            # if self.istrain:
-            #     img, bboxes = dataAug.random_horizontal_flip(np.copy(img), np.copy(bboxes))
-            #     img, bboxes = dataAug.random_crop(np.copy(img), np.copy(bboxes))
-            #     img, bboxes = dataAug.random_translate(np.copy(img), np.copy(bboxes))
-            # img, bboxes = dataAug.img_preprocess2(np.copy(img), np.copy(bboxes),
-            #                                       (random_trainsize, random_trainsize), True)
-
+                lam = np.random.beta(1.5, 1.5)
+                img = lam * image_org + (1 - lam) * image_mix
+                bboxes_org = np.concatenate(
+                    [bboxes_org, np.full((len(bboxes_org), 1), lam)], axis=-1)
+                bboxes_mix = np.concatenate(
+                    [bboxes_mix, np.full((len(bboxes_mix), 1), 1 - lam)], axis=-1)
+                bboxes = np.concatenate([bboxes_org, bboxes_mix])
+                labels = np.concatenate([labels_org,label_mix])
+            else:
+                img = image_org
+                bboxes = np.concatenate([bboxes_org, np.full((len(bboxes_org), 1), 1.0)], axis=-1)
+                labels=labels_org
             label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes = \
                 self.preprocess_anchorfree(bboxes, labels, outputshapes)
             batch_image[idx, :, :, :] = img
@@ -153,7 +171,7 @@ class VOCdataset:
             bbox_xywh = np.concatenate([(bbox_coor[2:] + bbox_coor[:2]) * 0.5,
                                         bbox_coor[2:] - bbox_coor[:2]], axis=-1)
             bbox_scale = np.sqrt(np.multiply.reduce(bbox_xywh[2:]))
-
+            bbox_mixw = bbox[4]
             # label smooth
             onehot = np.zeros(self.numcls, dtype=np.float)
             onehot[bbox_class_ind] = 1.0
@@ -172,7 +190,7 @@ class VOCdataset:
             if gt_count < self._gt_per_grid:
                 if gt_count == 0:
                     gt_count = slice(None)
-                bbox_label = np.concatenate([bbox_coor, [1.0], smooth_onehot, [1]], axis=-1)
+                bbox_label = np.concatenate([bbox_coor, [1.0], smooth_onehot, [bbox_mixw]], axis=-1)
                 label[match_branch][yind, xind, gt_count, :] = 0
                 label[match_branch][yind, xind, gt_count, :] = bbox_label
                 bboxes_count[match_branch][yind, xind] += 1

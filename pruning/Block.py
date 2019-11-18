@@ -135,3 +135,20 @@ class Conv(Baselayer):
         # modulelayers = [m for m in module.modules() if isinstance(m, nn.Conv2d)]
         # modulelayers[0].weight.data=self.statedict[0].clone()
         # modulelayers[0].bias.data=self.statedict[1].clone()
+
+class DarkBlock(Baselayer):
+    def __init__(self, layername: str, id: int, input: list, statedict: list):
+        super().__init__(layername, id, input, statedict)
+        self.inputchannel = self.statedict[0].shape[1]
+        self.outputchannel = self.statedict[-1].shape[0]
+        self.bnscale = self.statedict[1].abs().clone()
+
+    def clone2module(self, module: nn.Module, inputmask, keepoutput=False):
+        modulelayers = [m for m in module.modules() if isinstance(m, nn.Conv2d) or isinstance(m, nn.BatchNorm2d)]
+        temp = self.statedict[0][:, inputmask.tolist(), :, :]
+        modulelayers[0].weight.data = temp[self.prunemask.tolist(), :, :, :].clone()
+        self._cloneBN(modulelayers[1], self.statedict[1:5], self.prunemask)
+
+        modulelayers[2].weight.data = self.statedict[5][:, self.prunemask.tolist(), :, :]
+        self._cloneBN(modulelayers[3], self.statedict[6:10], torch.arange(self.statedict[6].shape[0]))
+        self.outmask = torch.arange(self.statedict[6].shape[0])
