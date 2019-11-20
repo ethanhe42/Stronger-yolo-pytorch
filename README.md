@@ -12,7 +12,7 @@ python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 ## Improvement with latest papers(Using StrongerV3 as baseline)
 |model|mAP50|mAP75|configs|
 | ------ | ------ | ------ |------ |
-|baseline(with GIOU)|79.6 |43.4|voc.yaml|
+|baseline(with GIOU)|79.6 |43.4|strongerv3.yaml|
 |+ [kl loss&&varvote](https://github.com/yihui-he/KL-Loss)|78.9|49.2 |strongerv3_kl.yaml|
 
 
