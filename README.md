@@ -12,10 +12,9 @@ python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 ## Improvement with latest papers(Using StrongerV3 as baseline)
 |model|mAP50|mAP75|configs|
 | ------ | ------ | ------ |------ |
-|baseline(with GIOU)|0.765 |0.391|voc.yaml|
-|+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |strongerv3_clsfocal.yaml|
-|+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |strongerv3_kl.yaml|
-|+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |strongerv3_kl.yaml|
+|baseline(with GIOU)|79.6 |43.4|voc.yaml|
+|+ [kl loss&&varvote](https://github.com/yihui-he/KL-Loss)|78.9|49.2 |strongerv3_kl.yaml|
+
 
 Note:  
 1.Set EVAL.varvote=True to enable varvote in KL-loss. 
