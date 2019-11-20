@@ -17,7 +17,7 @@ python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 
 
 Note:  
-1.Set EVAL.varvote=True to enable varvote in KL-loss. 
+1.Set EVAL.varvote=True to enable varvote in KL-loss. According to the paper, kl-loss(and varvote) can strongly boost the performance of mAP75(or higher), but decrease mAP50 slightly.
 
 ## Performance on VOC2007 Test(mAP) after pruning
 |Model| MAP | Flops(G)| Params(M)|
