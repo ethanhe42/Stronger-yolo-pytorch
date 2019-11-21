@@ -28,7 +28,8 @@ strongerv3-sparsed|Mobilev2|77.4|4.33|6.775|
 strongerv3-Pruned(30% pruned) |Mobilev2|77.1 |3.14|3.36|
 strongerv2| Darknet53|80.2|49.8|61.6|
 strongerv2-sparsed|Darknet53|78.1|49.8|61.6|
-strongerv2-Pruned(20% pruned) |Darknet53|76.8 |49.8|45.2|
+strongerv2-Pruned(20% pruned) |Darknet53|76.8 |49.8|45.2|  
+
 Note:  
 1.Tuning _C.Prune.sr can get better prune ratio, I picked the official number 0.01.  
 ## Supported backbone
