@@ -3,7 +3,7 @@
 ## Introduction
 This project is inspired by [Stronger-Yolo](https://github.com/Stinky-Tofu/Stronger-yolo). I reimplemented with Pytorch and continue improving yolov3 with latest papers.  
 This project will also try out some model-compression approaches(e.g. channel-pruning).  
-See **reimplementation results** in [MODELZOO](models/MODELZOO.md).
+See **reimplementation results** in [MODELZOO](docs/MODELZOO.md).
 ## Environment
 python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 
@@ -12,13 +12,12 @@ python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 ## Improvement with latest papers(Using StrongerV3 as baseline)
 |model|mAP50|mAP75|configs|
 | ------ | ------ | ------ |------ |
-|baseline(with GIOU)|0.765 |0.391|voc.yaml|
-|+ [focal loss](https://arxiv.org/abs/1708.02002)|0.772|0.438 |strongerv3_clsfocal.yaml|
-|+ [kl loss](https://github.com/yihui-he/KL-Loss)|0.778|0.449 |strongerv3_kl.yaml|
-|+ [var vote](https://github.com/yihui-he/KL-Loss)|0.781|0.464 |strongerv3_kl.yaml|
+|baseline(with GIOU)|79.6 |43.4|strongerv3.yaml|
+|+ [kl loss&&varvote](https://github.com/yihui-he/KL-Loss)|78.9|49.2 |strongerv3_kl.yaml|
+
 
 Note:  
-1.Set EVAL.varvote=True to enable varvote in KL-loss. 
+1.Set EVAL.varvote=True to enable varvote in KL-loss. According to the paper, kl-loss(and varvote) can strongly boost the performance of mAP75(or higher), but decrease mAP50 slightly.
 
 ## Performance on VOC2007 Test(mAP) after pruning
 |Model| MAP | Flops(G)| Params(M)|
