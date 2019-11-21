@@ -54,7 +54,7 @@ _C.Prune.sparse=False
 _C.Prune.sr=0.01
 _C.Prune.pruneratio=0.0
 _C.Prune.bbOutName=('backbone.layer3.residual_7','backbone.layer4.residual_7','backbone.layer5.residual_3')
-
+_C.Prune.do_test=False
 
 
 

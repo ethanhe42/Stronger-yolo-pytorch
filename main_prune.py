@@ -35,14 +35,15 @@ def main(args):
     flopsnew, paramsnew = profile(newmodel, inputs=(input, ),verbose=False)
     flopsnew, paramsnew = clever_format([flopsnew, paramsnew], "%.3f")
     print("flops:{}->{}, params: {}->{}".format(flops,flopsnew,params,paramsnew))
-    resultold=pruner.test(newmodel=False,validiter=10)
-    resultnew=pruner.test(newmodel=True,validiter=10)
-    print("original map:{},pruned map:{}".format(resultold,resultnew))
-    bestfinetune=pruner.finetune()
-    print("finetuned map:{}".format(bestfinetune))
-
-    # load_checkpoint(newmodel, torch.load(os.path.join(_Trainer.save_path,'checkpoint-best-ft0.2.pth')))
-    # pruner.test(newmodel=True,validiter=-1)
+    if not args.Prune.do_test:
+        resultold=pruner.test(newmodel=False,validiter=10)
+        resultnew=pruner.test(newmodel=True,validiter=10)
+        print("original map:{},pruned map:{}".format(resultold,resultnew))
+        bestfinetune=pruner.finetune()
+        print("finetuned map:{}".format(bestfinetune))
+    else:
+        load_checkpoint(newmodel, torch.load(os.path.join(_Trainer.save_path,'checkpoint-best-ft{}.pth'.format(args.Prune.pruneratio))))
+        pruner.test(newmodel=True,validiter=-1)
   #
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
@@ -61,4 +62,4 @@ if __name__ == '__main__':
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
-    main(args=cfg).run()
+    main(args=cfg)
