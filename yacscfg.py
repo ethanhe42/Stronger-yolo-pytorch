@@ -32,7 +32,7 @@ _C.EVAL.softsigma=False
 _C.EXPER=CN()
 _C.EXPER.experiment_name=''
 _C.EXPER.train_sizes=[480,512,544]
-_C.EXPER.test_size=512
+_C.EXPER.test_size=544
 _C.EXPER.resume=''
 
 _C.OPTIM=CN()
