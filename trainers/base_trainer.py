@@ -75,7 +75,7 @@ class BaseTrainer:
             ckptfile = torch.load(os.path.join(self.save_path, 'checkpoint-{}.pth'.format(self.args.EXPER.resume)))
             self.model.load_state_dict(ckptfile['state_dict'])
             #load_checkpoint(self.model,ckptfile)
-            if not self.args.finetune and not self.args.do_test:
+            if not self.args.finetune and not self.args.do_test and not self.args.Prune.do_test:
                 self.optimizer.load_state_dict(ckptfile['opti_dict'])
                 self.global_epoch = ckptfile['epoch']
                 self.global_iter = ckptfile['iter']
