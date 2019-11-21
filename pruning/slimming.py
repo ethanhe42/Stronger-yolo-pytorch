@@ -4,10 +4,10 @@ from models.backbone.baseblock import InvertedResidual, conv_bn, sepconv_bn, con
 
 
 class SlimmingPruner(BasePruner):
-    def __init__(self, Trainer, newmodel, cfg):
+    def __init__(self, Trainer, newmodel, cfg,savebn=''):
         super().__init__(Trainer, newmodel,cfg)
         self.pruneratio = cfg.pruneratio
-
+        self.savebn=savebn
     def prune(self):
         super().prune()
         # gather BN weights
@@ -18,14 +18,14 @@ class SlimmingPruner(BasePruner):
             if b.bnscale is not None and b.layername not in blacklist:
                 bns.extend(b.bnscale.tolist())
                 maxbn.append(b.bnscale.max().item())
-
         bns = torch.Tensor(bns)
         y, i = torch.sort(bns)
-        # import matplotlib.pyplot as plt
-        # import numpy as np
-        # plt.scatter(np.arange(y.shape[0])/y.shape[0],y.numpy())
-        # plt.show()
-        # assert 0
+        if self.savebn:
+            import matplotlib.pyplot as plt
+            import numpy as np
+            plt.scatter(np.arange(y.shape[0])/y.shape[0],y.numpy()/y.numpy().max())
+            plt.show()
+            assert 0
         prunelimit=(y==min(maxbn)).nonzero().item()/len(bns)
         print("prune limit: {}".format(prunelimit))
         if self.pruneratio>prunelimit:
@@ -39,7 +39,7 @@ class SlimmingPruner(BasePruner):
                 ## for darknet pruing, residual_downsample's output must be kept
                 if 'residual_downsample' in b.layername:
                     mask = torch.ones_like(b.bnscale)
-                    b.prunemask = torch.ones_like(b.bnscale)
+                    b.prunemask = torch.arange(b.bnscale.shape[0])
                 else:
                     mask = b.bnscale.gt(thre)
                     pruned_bn = pruned_bn + mask.shape[0] - torch.sum(mask)

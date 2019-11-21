@@ -22,24 +22,20 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-  modeltype: StrongerV1
-  backbone: 'darknet53'
+  modeltype: StrongerV3
+  backbone: 'MobileNetV2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
+  seprelu: False
 EXPER:
-  experiment_name: 'strongerv2_sparse'
-  resume: 'best'
+  experiment_name: 'strongerv3_nosep'
 DATASET:
   dataset: 'VOC'
 
 OPTIM:
-  batch_size: 8
+  batch_size: 12
   lr_initial: 2e-4
-  total_epoch: 3
-  milestones: [1,2]
+  total_epoch: 60
+  milestones: [30,45]
 
 Prune:
-  sparse: True
-  pruneratio: 0.2
-  bbOutName: ('backbone.layer3.residual_7','backbone.layer4.residual_7','backbone.layer5.residual_3')
-
-debug: True
-devices: 1,
+  sparse: False
