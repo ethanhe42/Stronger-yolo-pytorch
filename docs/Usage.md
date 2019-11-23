@@ -26,7 +26,10 @@ python main.py --config-file configs/strongerv3_sparse.yaml  EXPER.experiment_na
 ```
 python main_prune.py --config-file configs/strongerv3_prune.yaml  EXPER.experiment_name strongerv3_sparse Prune.sparse True Prune.pruneratio 0.3   
 ```
-
+3 . Test the pruned model
+```
+python main_prune.py --config-file configs/strongerv3_prune.yaml Prune.pruneratio 0.3 Prune.do_test True   
+```
 ### Transfer back to Tensorflow and make it portable.
 Check [MNN-yolov3](https://github.com/wlguan/MNN-yolov3).  
 - [ ] A pytorch->tensorflow script is underway.
