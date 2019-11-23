@@ -49,7 +49,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default='configs/strongerv2_prune.yaml'
+        default='configs/strongerv3_prune.yaml'
     )
 
     parser.add_argument(
