@@ -129,7 +129,8 @@ class BaseTrainer:
             for m in self.model.named_modules():
                 if isinstance(m[1], nn.BatchNorm2d):
                     allbns.append(m[0])
-                    if 'project_bn' in m[0] or 'dw_bn' in m[0] or 'residual_downsample' in m[0]:
+                    #if 'project_bn' in m[0] or 'dw_bn' in m[0] or 'residual_downsample' in m[0]:
+                    if 'dw_bn' in m[0] or 'residual_downsample' in m[0]:
                         continue
                     self.sparseBN.append(m[1])
             print("{}/{} bns will be sparsed.".format(len(self.sparseBN),len(allbns)))

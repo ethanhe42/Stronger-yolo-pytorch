@@ -5,59 +5,7 @@ import torch
 import random
 import colorsys
 import cv2
-
 import math
-
-
-def DIOU(boxes1, boxes2):
-    """
-    :param boxes1: boxes1和boxes2的shape可以不相同，但是需要满足广播机制，且需要是Tensor
-    :param boxes2: 且需要保证最后一维为坐标维，以及坐标的存储结构为(xmin, ymin, xmax, ymax)
-    :return: 返回boxes1和boxes2的IOU，IOU的shape为boxes1和boxes2广播后的shape[:-1]
-    """
-    boxes1 = torch.cat([torch.min(boxes1[..., :2], boxes1[..., 2:]),
-                        torch.max(boxes1[..., :2], boxes1[..., 2:])], dim=-1)
-    boxes2 = torch.cat([torch.min(boxes2[..., :2], boxes2[..., 2:]),
-                        torch.max(boxes2[..., :2], boxes2[..., 2:])], dim=-1)
-
-    center_x1 = (boxes1[..., 2] + boxes1[..., 0]) / 2
-    center_y1 = (boxes1[..., 3] + boxes1[..., 1]) / 2
-    center_x2 = (boxes2[..., 2] + boxes2[..., 0]) / 2
-    center_y2 = (boxes2[..., 3] + boxes2[..., 1]) / 2
-    w1 = boxes1[..., 2] - boxes1[..., 0]
-    h1 = boxes1[..., 3] - boxes1[..., 1]
-    w2 = boxes2[..., 2] - boxes2[..., 0]
-    h2 = boxes2[..., 3] - boxes2[..., 1]
-
-    boxes1_area = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])
-    boxes2_area = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])
-    # 计算出boxes1与boxes1相交部分的左上角坐标、右下角坐标
-    intersection_left_up = torch.max(boxes1[..., :2], boxes2[..., :2])
-    intersection_right_down = torch.min(boxes1[..., 2:], boxes2[..., 2:])
-
-    # 因为两个boxes没有交集时，(right_down - left_up) < 0，所以maximum可以保证当两个boxes没有交集时，它们之间的iou为0
-    intersection = torch.max(intersection_right_down - intersection_left_up, torch.zeros_like(intersection_right_down))
-    inter_area = intersection[..., 0] * intersection[..., 1]
-    union_area = boxes1_area + boxes2_area - inter_area
-    IOU = 1.0 * inter_area / union_area
-
-    enclose_left_up = torch.min(boxes1[..., :2], boxes2[..., :2])
-    enclose_right_down = torch.max(boxes1[..., 2:], boxes2[..., 2:])
-    enclose = torch.max(enclose_right_down - enclose_left_up, torch.zeros_like(enclose_left_up))
-    outer_diag = enclose[..., 0] ** 2 + enclose[..., 1] ** 2
-    inter_diag = (center_x2 - center_x1) ** 2 + (center_y2 - center_y1) ** 2
-
-    with torch.no_grad():
-        arctan = torch.atan(w2 / h2) - torch.atan(w1 / h1)
-        v = (4 / (math.pi ** 2)) * torch.pow((torch.atan(w2 / h2) - torch.atan(w1 / h1)), 2)
-        S = 1 - IOU
-        alpha = v / (S + v)
-        w_temp = 2 * w1
-    ar = (8 / (math.pi ** 2)) * arctan * ((w1 - w_temp) * h1)
-
-    DIOU = IOU - (1.0 * inter_diag / outer_diag + alpha * ar)
-    DIOU = torch.clamp(DIOU, min=-1.0, max=1.0)
-    return DIOU
 
 
 def sigmoid(arr):
@@ -157,32 +105,6 @@ def iou_calc3(boxes1, boxes2):
     return IOU
 
 
-def iou_calc4(boxes1, boxes2):
-    """
-    :param boxes1: boxes1和boxes2的shape可以不相同，但是需要满足广播机制，且需要是Tensor
-    :param boxes2: 且需要保证最后一维为坐标维，以及坐标的存储结构为(x, y, w, h)
-    :return: 返回boxes1和boxes2的IOU，IOU的shape为boxes1和boxes2广播后的shape[:-1]
-    """
-    boxes1_area = boxes1[..., 2] * boxes1[..., 3]
-    boxes2_area = boxes2[..., 2] * boxes2[..., 3]
-
-    # 分别计算出boxes1和boxes2的左上角坐标、右下角坐标
-    # 存储结构为(xmin, ymin, xmax, ymax)，其中(xmin,ymin)是bbox的左上角坐标，(xmax,ymax)是bbox的右下角坐标
-    boxes1 = tf.concat([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
-                        boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
-    boxes2 = tf.concat([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
-                        boxes2[..., :2] + boxes2[..., 2:] * 0.5], axis=-1)
-
-    # 计算出boxes1与boxes1相交部分的左上角坐标、右下角坐标
-    left_up = torch.max(boxes1[..., :2], boxes2[..., :2])
-    right_down = torch.min(boxes1[..., 2:], boxes2[..., 2:])
-
-    # 因为两个boxes没有交集时，(right_down - left_up) < 0，所以maximum可以保证当两个boxes没有交集时，它们之间的iou为0
-    inter_section = torch.max(right_down - left_up, 0.0)
-    inter_area = inter_section[..., 0] * inter_section[..., 1]
-    union_area = boxes1_area + boxes2_area - inter_area
-    IOU = 1.0 * inter_area / union_area
-    return IOU
 
 
 def GIOU(boxes1, boxes2):
@@ -191,7 +113,6 @@ def GIOU(boxes1, boxes2):
     :param boxes2: 且需要保证最后一维为坐标维，以及坐标的存储结构为(xmin, ymin, xmax, ymax)
     :return: 返回boxes1和boxes2的IOU，IOU的shape为boxes1和boxes2广播后的shape[:-1]
     """
-
     boxes1 = torch.cat([torch.min(boxes1[..., :2], boxes1[..., 2:]),
                         torch.max(boxes1[..., :2], boxes1[..., 2:])], dim=-1)
     boxes2 = torch.cat([torch.min(boxes2[..., :2], boxes2[..., 2:]),
@@ -216,6 +137,56 @@ def GIOU(boxes1, boxes2):
     GIOU = IOU - 1.0 * (enclose_area - union_area) / enclose_area
 
     return GIOU
+
+def DIOU(boxes1, boxes2):
+    """
+    :param boxes1: boxes1和boxes2的shape可以不相同，但是需要满足广播机制，且需要是Tensor
+    :param boxes2: 且需要保证最后一维为坐标维，以及坐标的存储结构为(xmin, ymin, xmax, ymax)
+    :return: 返回boxes1和boxes2的IOU，IOU的shape为boxes1和boxes2广播后的shape[:-1]
+    """
+    boxes1 = torch.cat([torch.min(boxes1[..., :2], boxes1[..., 2:]),
+                        torch.max(boxes1[..., :2], boxes1[..., 2:])], dim=-1)
+    boxes2 = torch.cat([torch.min(boxes2[..., :2], boxes2[..., 2:]),
+                        torch.max(boxes2[..., :2], boxes2[..., 2:])], dim=-1)
+
+    center_x1 = (boxes1[..., 2] + boxes1[..., 0]) / 2
+    center_y1 = (boxes1[..., 3] + boxes1[..., 1]) / 2
+    center_x2 = (boxes2[..., 2] + boxes2[..., 0]) / 2
+    center_y2 = (boxes2[..., 3] + boxes2[..., 1]) / 2
+    w1 = boxes1[..., 2] - boxes1[..., 0]
+    h1 = boxes1[..., 3] - boxes1[..., 1]
+    w2 = boxes2[..., 2] - boxes2[..., 0]
+    h2 = boxes2[..., 3] - boxes2[..., 1]
+    
+    boxes1_area = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])
+    boxes2_area = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])
+    # 计算出boxes1与boxes1相交部分的左上角坐标、右下角坐标
+    intersection_left_up = torch.max(boxes1[..., :2], boxes2[..., :2])
+    intersection_right_down = torch.min(boxes1[..., 2:], boxes2[..., 2:])
+
+    # 因为两个boxes没有交集时，(right_down - left_up) < 0，所以maximum可以保证当两个boxes没有交集时，它们之间的iou为0
+    intersection = torch.max(intersection_right_down - intersection_left_up, torch.zeros_like(intersection_right_down))
+    inter_area = intersection[..., 0] * intersection[..., 1]
+    union_area = boxes1_area + boxes2_area - inter_area
+    IOU = 1.0 * inter_area / union_area
+
+    enclose_left_up = torch.min(boxes1[..., :2], boxes2[..., :2])
+    enclose_right_down = torch.max(boxes1[..., 2:], boxes2[..., 2:])
+    enclose = torch.max(enclose_right_down - enclose_left_up, torch.zeros_like(enclose_left_up))
+    outer_diag=enclose[...,0]**2+enclose[...,1]**2
+    inter_diag = (center_x2 - center_x1) ** 2 + (center_y2 - center_y1) ** 2
+
+    with torch.no_grad():
+        arctan = torch.atan(w2 / h2) - torch.atan(w1 / h1)
+        v = (4 / (math.pi ** 2)) * torch.pow((torch.atan(w2 / h2) - torch.atan(w1 / h1)), 2)
+        S = 1 - IOU
+        alpha = v / (S + v)
+        w_temp = 2 * w1
+    ar = (8 / (math.pi ** 2)) * arctan * ((w1 - w_temp) * h1)
+
+    DIOU = IOU - (1.0 * inter_diag/outer_diag+alpha*ar)
+    DIOU=torch.clamp(DIOU,min=-1.0,max=1.0)
+    return DIOU
 
 
 def nms(bboxes, score_threshold, iou_threshold, sigma=0.3, method='nms'):

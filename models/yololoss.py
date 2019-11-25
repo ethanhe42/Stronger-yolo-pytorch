@@ -102,6 +102,10 @@ def loss_per_scale(conv, pred, label, bboxes, stride,cfg):
         l1_loss = respond_bbox * bbox_loss_scale * (
                 torch.exp(-pred_vari) * smooth_loss(target=label_coor, input=pred_coor) + 0.5 * pred_vari) * cfg.l1scale
         bbox_loss = l1_loss
+    elif cfg.boxloss=='diou':
+        diou = GIOUloss.GIOU(pred_coor, label_coor).unsqueeze(-1)
+        diou_loss = respond_bbox * bbox_loss_scale * (1.0 - diou)
+        bbox_loss = diou_loss
     else:
         raise NotImplementedError
     bbox_loss=bbox_loss*label_mixw
