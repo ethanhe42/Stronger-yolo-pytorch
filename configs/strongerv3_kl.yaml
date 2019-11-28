@@ -23,7 +23,7 @@ MODEL:
   ]
   numcls: 20
   modeltype: StrongerV3KL
-  backbone: 'MobileNetV2'
+  backbone: 'mobilenetv2'
   backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
   boxloss: KL
   l1scale: 0.1

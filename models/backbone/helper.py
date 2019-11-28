@@ -9,7 +9,6 @@ def load_mobilev2(model,ckpt):
         if 'num_batches_tracked' in k:
             statedict.pop(k)
     for idx,((k,v),(k2,v2)) in enumerate(zip(statedict.items(),weights.items())):
-        # print(k,v.shape,'<->',k2,v2.shape)
         newstatedict.update({k:v2})
     model.load_state_dict(newstatedict)
     print("successfully load ckpt mobilev2")

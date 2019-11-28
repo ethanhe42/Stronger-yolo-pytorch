@@ -5,17 +5,32 @@ from mmcv.cnn import constant_init, kaiming_init
 from mmcv.runner import load_checkpoint
 from models.backbone.baseblock import *
 from models.backbone.helper import load_mobilev2
+def _make_divisible(v, divisor, min_value=None):
+    """
+    This function is taken from the original tf repo.
+    It ensures that all layers have a channel number that is divisible by 8
+    It can be seen here:
+    https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet.py
+    :param v:
+    :param divisor:
+    :param min_value:
+    :return:
+    """
+    if min_value is None:
+        min_value = divisor
+    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+    # Make sure that round down does not go down by more than 10%.
+    if new_v < 0.9 * v:
+        new_v += divisor
+    return new_v
 class MobileNetV2(nn.Module):
     def __init__(self,
-                 pretrained=None,
                  out_indices=(6, 13, 18),
                  width_mult=1.,
                  ):
         super(MobileNetV2, self).__init__()
         self.backbone_outchannels=[1280,96,32]
         block = InvertedResidual
-        input_channel = 32
-        last_channel = 1280
         interverted_residual_setting = [
             # t, c, n, s
             [1, 16, 1, 1],
@@ -27,16 +42,16 @@ class MobileNetV2(nn.Module):
             [6, 320, 1, 1],
         ]
 
-        input_channel = int(input_channel * width_mult)
+        input_channel = _make_divisible(32 * width_mult, 4 if width_mult == 0.1 else 8)
         # 1280
         self.out_indices = out_indices
         # self.zero_init_residual = zero_init_residual
-        self.last_channel = int(last_channel * width_mult) if width_mult > 1.0 else last_channel
+        self.last_channel = _make_divisible(1280 * width_mult, 4 if width_mult == 0.1 else 8) if width_mult > 1.0 else 1280
 
         self.features = [conv_bn(3, input_channel, 3,2,1)]
         # building inverted residual blocks
         for t, c, n, s in interverted_residual_setting:
-            output_channel = int(c * width_mult)
+            output_channel = _make_divisible(c * width_mult, 4 if width_mult == 0.1 else 8)
             for i in range(n):
                 if i == 0:
                     self.features.append(block(input_channel, output_channel, s, expand_ratio=t))
@@ -45,8 +60,6 @@ class MobileNetV2(nn.Module):
                 input_channel = output_channel
         self.features.append(conv_bn(input_channel,self.last_channel, 1,1,0))
         self.features = nn.Sequential(*self.features)
-        if pretrained:
-            load_mobilev2(self,pretrained)
     def init_weights(self, pretrained=None):
         if isinstance(pretrained, str):
             logger = logging.getLogger()
@@ -67,10 +80,26 @@ class MobileNetV2(nn.Module):
             if i in self.out_indices:
                 outs.append(x)
         return outs
-
+def mobilenetv2(pretrained=None, **kwargs):
+    model = MobileNetV2(width_mult=1.0)
+    if pretrained:
+        if isinstance(pretrained, str):
+            load_mobilev2(model,pretrained)
+        else:
+            raise Exception("darknet request a pretrained path. got [{}]".format(pretrained))
+    return model
+def mobilenetv2_75(pretrained=None, **kwargs):
+    model = MobileNetV2(width_mult=0.75)
+    model.backbone_outchannels=[1280,72,24]
+    if pretrained:
+        if isinstance(pretrained, str):
+            load_mobilev2(model,pretrained)
+        else:
+            raise Exception("darknet request a pretrained path. got [{}]".format(pretrained))
+    return model
 if __name__ == '__main__':
     from thop import profile,clever_format
-    net=MobileNetV2()
+    net=mobilenetv2_75('checkpoints/mobilenetv2_0.75.pth')
     input=torch.ones(1,3,320,320)
     flops, params = profile(net, inputs=(input,), verbose=False)
     flops, params = clever_format([flops, params], "%.3f")

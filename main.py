@@ -10,7 +10,6 @@ def main(args):
     gpus=[str(g) for g in args.devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(gpus)
     net = eval(cfg.MODEL.modeltype)(cfg=args.MODEL).cuda()
-
     optimizer = optim.Adam(net.parameters(),lr=args.OPTIM.lr_initial)
     scheduler=optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.OPTIM.milestones, gamma=0.1)
     _Trainer = eval('Trainer_{}'.format(args.DATASET.dataset))(args=args,
@@ -28,7 +27,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default = 'configs/strongerv1.yaml'
+        default = 'configs/strongerv3_0.75.yaml'
     )
 
     parser.add_argument(
