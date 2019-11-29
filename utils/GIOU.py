@@ -47,15 +47,7 @@ def DIOU(boxes1, boxes2):
     outer_diag = enclose[..., 0] ** 2 + enclose[..., 1] ** 2
     inter_diag = (center_x2 - center_x1) ** 2 + (center_y2 - center_y1) ** 2
 
-    with torch.no_grad():
-        arctan = torch.atan(w2 / h2) - torch.atan(w1 / h1)
-        v = (4 / (math.pi ** 2)) * torch.pow((torch.atan(w2 / h2) - torch.atan(w1 / h1)), 2)
-        S = 1 - IOU
-        alpha = v / (S + v)
-        w_temp = 2 * w1
-    ar = (8 / (math.pi ** 2)) * arctan * ((w1 - w_temp) * h1)
-
-    DIOU = IOU - (1.0 * inter_diag / outer_diag + alpha * ar)
+    DIOU = IOU - (1.0 * inter_diag / outer_diag)
     DIOU = torch.clamp(DIOU, min=-1.0, max=1.0)
     return DIOU
 

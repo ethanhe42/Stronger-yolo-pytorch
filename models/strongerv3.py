@@ -1,4 +1,4 @@
-from models.backbone import MobileNetV2,darknet53,darknet21
+from models.backbone import *
 from models.backbone.helper import *
 from models.backbone.baseblock import *
 
