@@ -8,6 +8,7 @@
 |v1-this|yolov3.weights|86.2|strongerv1.yaml|
 |v2-this|darknet53.conv.74|80.2|strongerv2.yaml|
 |v3-this|mobilenetv2|79.6|strongerv3.yaml|  
+|v3-this|mobilenetv2-0.75|76.97|strongerv3_0.75.yaml|  
 
 Note: 
 - This project use threshold=0.1 for faster evaluation,while the original implementation use 0.01.
