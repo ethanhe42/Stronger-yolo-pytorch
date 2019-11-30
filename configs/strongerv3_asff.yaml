@@ -1,0 +1,40 @@
+MODEL:
+  LABEL: [
+  "aeroplane",
+  "bicycle",
+  "bird",
+  "boat",
+  "bottle",
+  "bus",
+  "car",
+  "cat",
+  "chair",
+  "cow",
+  "diningtable",
+  "dog",
+  "horse",
+  "motorbike",
+  "person",
+  "pottedplant",
+  "sheep",
+  "sofa",
+  "train",
+  "tvmonitor"
+  ]
+  numcls: 20
+  modeltype: StrongerV3
+  backbone: 'mobilenetv2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
+EXPER:
+  experiment_name: 'strongerv3_asff'
+DATASET:
+  dataset: 'VOC'
+
+OPTIM:
+  batch_size: 12
+  lr_initial: 2e-4
+  total_epoch: 60
+  milestones: [30,45]
+
+Prune:
+  sparse: False

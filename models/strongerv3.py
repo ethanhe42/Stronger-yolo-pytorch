@@ -10,6 +10,7 @@ class StrongerV3(nn.Module):
         self.backbone = eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
         self.outC = self.backbone.backbone_outchannels
         self.heads=[]
+        self.activate_type = 'relu6'
         self.headslarge=nn.Sequential(OrderedDict([
             ('conv0',conv_bn(self.outC[0],512,kernel=1,stride=1,padding=0)),
             ('conv1', sepconv_bn(512, 1024, kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
@@ -53,6 +54,9 @@ class StrongerV3(nn.Module):
             ('conv21',sepconv_bn(128,256,kernel=3, stride=1, padding=1,seprelu=cfg.seprelu)),
             ('conv22', conv_bias(256, self.gt_per_grid*(self.numclass+5),kernel=1,stride=1,padding=0))
         ]))
+        self.asff0 = ASFF(0, activate=self.activate_type)
+        self.asff1 = ASFF(1, activate=self.activate_type)
+        self.asff2 = ASFF(2, activate=self.activate_type)
     def decode(self,output,stride):
         bz=output.shape[0]
         gridsize=output.shape[-1]
@@ -101,18 +105,26 @@ class StrongerV3(nn.Module):
         return output
 
     def forward(self,input):
-        feat_small,feat_mid,feat_large=self.backbone(input)
-        conv=self.headslarge(feat_large)
-        outlarge=self.detlarge(conv)
+        feat_small, feat_mid, feat_large = self.backbone(input)
+        conv = self.headslarge(feat_large)
+        convlarge=conv
 
-        conv=self.mergelarge(conv)
-        conv=self.headsmid(torch.cat((conv,feat_mid),dim=1))
-        outmid=self.detmid(conv)
+        conv = self.mergelarge(convlarge)
+        conv = self.headsmid(torch.cat((conv, feat_mid), dim=1))
+        convmid=conv
 
-        conv=self.mergemid(conv)
+        conv = self.mergemid(convmid)
 
-        conv=self.headsmall(torch.cat((conv,feat_small),dim=1))
-        outsmall=self.detsmall(conv)
+        conv = self.headsmall(torch.cat((conv, feat_small), dim=1))
+        convsmall=conv
+
+        convlarge=self.asff0(convlarge,convmid,convsmall)
+        convmid=self.asff1(convlarge,convmid,convsmall)
+        convsmall=self.asff2(convlarge,convmid,convsmall)
+
+        outlarge = self.detlarge(convlarge)
+        outmid = self.detmid(convmid)
+        outsmall = self.detsmall(convsmall)
         if self.training:
             predlarge = self.decode(outlarge, 32)
             predmid=self.decode(outmid,16)
