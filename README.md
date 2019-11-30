@@ -11,15 +11,15 @@ python3.6, pytorch1.2(1.0+ should be ok), ubuntu14/16/18 tested.
 All checkpoints as well as converted darknet can be downloaded here.[链接](https://pan.baidu.com/s/17VK455rp4B_SRhEmklT_ig) 提取码: i3pa  
 **See [Usage.md](docs/Usage.md) for details.** 
 ## Improvement with latest papers(Using StrongerV3 as baseline)
-|model|mAP50|mAP75|configs|
-| ------ | ------ | ------ |------ |
-|baseline(with GIOU)|79.6 |43.4|strongerv3.yaml|
-|+ [kl loss&&varvote](https://github.com/yihui-he/KL-Loss)|78.9|49.2 |strongerv3_kl.yaml|
-
+|model|mAP50|mAP75|configs|baseline|
+| ------ | ------ | ------ |------ |------ |
+|baseline(with GIOU)|79.6 |43.4|strongerv3.yaml|-|
+|+ [kl loss&&varvote](https://github.com/yihui-he/KL-Loss)|78.9|49.2 |strongerv3_kl.yaml|strongerv3.yaml|  
+|+ [ASFF](https://github.com/ruinmessi/ASFF)|80.6|46.6 |strongerv3_asff.yaml|strongerv3.yaml|
 
 Note:  
-1.Set EVAL.varvote=True to enable varvote in KL-loss. According to the paper, kl-loss(and varvote) can strongly boost the performance of mAP75(or higher), but decrease mAP50 slightly.
-
+1.Set EVAL.varvote=True to enable varvote in KL-loss. According to the paper, kl-loss(and varvote) can strongly boost the performance of mAP75(or higher), but decrease mAP50 slightly.  
+2.The details(e.g. channel number) of ASFF module is not completely the same as the original implementation. 
 ## Performance on VOC2007 Test(mAP) after pruning
 |Model| Backbone|MAP | Flops(G)| Params(M)|
 | ------ | ------ | ------ | ------ |------ |
@@ -40,3 +40,4 @@ Note:
 [Stronger-Yolo](https://github.com/Stinky-Tofu/Stronger-yolo)  
 [focal-loss](https://arxiv.org/abs/1708.02002)  
 [kl-loss](https://github.com/yihui-he/KL-Loss)
+[ASFF](https://github.com/ruinmessi/ASFF)

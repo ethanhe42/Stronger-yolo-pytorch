@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="DEMO configuration")
     parser.add_argument(
         "--config-file",
-        default = 'configs/strongerv3_asff.yaml'
+        default = 'configs/strongerv3_all.yaml'
     )
 
     parser.add_argument(
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
-    cfg.EVAL.iou_thres=0.5
+    cfg.EVAL.iou_thres=0.75
     cfg.freeze()
     print(cfg)
     main(args=cfg)

@@ -23,6 +23,7 @@ MODEL:
   ]
   numcls: 20
   modeltype: StrongerV3
+  ASFF: True
   backbone: 'mobilenetv2'
   backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
 EXPER:

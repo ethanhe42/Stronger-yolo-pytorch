@@ -17,7 +17,7 @@ _C.MODEL.clsfocal = False
 _C.MODEL.seprelu = True
 _C.MODEL.boxloss = 'iou'
 _C.MODEL.l1scale = 1.0
-
+_C.MODEL.ASFF=False
 _C.EVAL=CN()
 #iou thres for VOC,default is map50
 _C.EVAL.iou_thres=0.5

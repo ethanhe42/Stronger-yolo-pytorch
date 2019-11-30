@@ -22,20 +22,24 @@ MODEL:
   "tvmonitor"
   ]
   numcls: 20
-  gt_per_grid: 3
-  modeltype: StrongerV1
-  backbone: 'darknet53'
-  backbone_pretrained: 'checkpoints/darknet.pth'
+  modeltype: StrongerV3KL
+  backbone: 'mobilenetv2'
+  backbone_pretrained: 'checkpoints/mobilenet_v2.pth'
+  boxloss: KL
+  l1scale: 0.1
+  clsfocal: True
+  seprelu: False
+  ASFF: True
+
 EVAL:
   varvote: True
-  soft: False
 EXPER:
-  experiment_name: 'strongerv2_asff'
+  experiment_name: 'strongerv3_all'
 DATASET:
   dataset: 'VOC'
 
 OPTIM:
-  batch_size: 8
+  batch_size: 12
   lr_initial: 2e-4
   total_epoch: 60
   milestones: [30,45]
@@ -43,4 +47,4 @@ OPTIM:
 Prune:
   sparse: False
 
-devices: (1,)
+devices: (0,)

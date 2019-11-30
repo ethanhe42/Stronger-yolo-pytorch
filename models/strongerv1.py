@@ -6,6 +6,7 @@ from models.backbone.baseblock import *
 class StrongerV1(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        self.cfg=cfg
         self.numclass = cfg.numcls
         self.gt_per_grid = cfg.gt_per_grid
         self.backbone = eval(cfg.backbone)(pretrained=cfg.backbone_pretrained)
@@ -55,9 +56,10 @@ class StrongerV1(nn.Module):
             ('conv21', conv_bn(128, 256, kernel=3, stride=1, padding=1, activate=self.activate_type)),
             ('conv22', conv_bias(256, self.gt_per_grid * (self.numclass + 5), kernel=1, stride=1, padding=0))
         ]))
-        self.asff0 = ASFF(0, activate=self.activate_type)
-        self.asff1 = ASFF(1, activate=self.activate_type)
-        self.asff2 = ASFF(2, activate=self.activate_type)
+        if cfg.ASFF:
+            self.asff0 = ASFF(0, activate=self.activate_type)
+            self.asff1 = ASFF(1, activate=self.activate_type)
+            self.asff2 = ASFF(2, activate=self.activate_type)
 
     def decode(self, output, stride):
         bz = output.shape[0]
@@ -120,10 +122,10 @@ class StrongerV1(nn.Module):
 
         conv = self.headsmall(torch.cat((conv, feat_small), dim=1))
         convsmall=conv
-
-        convlarge=self.asff0(convlarge,convmid,convsmall)
-        convmid=self.asff1(convlarge,convmid,convsmall)
-        convsmall=self.asff2(convlarge,convmid,convsmall)
+        if self.cfg.ASFF:
+            convlarge=self.asff0(convlarge,convmid,convsmall)
+            convmid=self.asff1(convlarge,convmid,convsmall)
+            convsmall=self.asff2(convlarge,convmid,convsmall)
 
         outlarge = self.detlarge(convlarge)
         outmid = self.detmid(convmid)
