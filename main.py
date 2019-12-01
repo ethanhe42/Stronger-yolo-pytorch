@@ -39,7 +39,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
-    cfg.EVAL.iou_thres=0.75
     cfg.freeze()
     print(cfg)
     main(args=cfg)
