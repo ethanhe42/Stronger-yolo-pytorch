@@ -12,6 +12,7 @@ All checkpoints as well as converted darknet can be downloaded here.[链接](htt
 **See [Usage.md](docs/Usage.md) for details.** 
 ## Improvement with latest papers(Using StrongerV3 as baseline)
 ### All results all tested with 544*544 and threshold 0.1
+
 |model|mAP50|mAP75|configs|baseline|
 | ------ | ------ | ------ |------ |------ |
 |baseline(with GIOU)|79.6 |43.4|strongerv3.yaml|-|
@@ -24,6 +25,7 @@ Note:
 2.The details(e.g. channel number) of ASFF module is not completely the same as the original implementation.  
 3.The **All** version including other small tricks like removing relu in detection head. Check config file for details. 
 ## Performance on VOC2007 Test(mAP) after pruning
+
 |Model| Backbone|MAP | Flops(G)| Params(M)|
 | ------ | ------ | ------ | ------ |------ |
 strongerv3| Mobilev2|79.6|4.33|6.775|
